@@ -1,0 +1,139 @@
+<div class="content">
+
+    <div class="container-fluid">
+        <div id="pad-wrapper" class="users-list">
+            <div class="row-fluid header">
+                <h3>用户列表</h3>
+                <div class="span10 pull-right">
+                    <input type="text" class="span5 search" placeholder="Type a user's name..." />
+
+                    <!-- custom popup filter -->
+                    <!-- styles are located in css/elements.css -->
+                    <!-- script that enables this dropdown is located in js/theme.js -->
+                    <div class="ui-dropdown">
+                        <div class="head" data-toggle="tooltip" title="Click me!">
+                            Filter users
+                            <i class="arrow-down"></i>
+                        </div>
+                        <div class="dialog">
+                            <div class="pointer">
+                                <div class="arrow"></div>
+                                <div class="arrow_border"></div>
+                            </div>
+                            <div class="body">
+                                <p class="title">
+                                    Show users where:
+                                </p>
+                                <div class="form">
+                                    <select>
+                                        <option />姓名
+                                        <option />年龄
+                                        <option />地址
+                                        <option />Signed up
+                                        <option />Last seen
+                                    </select>
+                                    <select>
+                                        <option />is equal to
+                                        <option />is not equal to
+                                        <option />is greater than
+                                        <option />starts with
+                                        <option />contains
+                                    </select>
+                                    <input type="text" />
+                                    <a class="btn-flat small">Add filter</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <a href="new-user.html" class="btn-flat success pull-right">
+                        <span>&#43;</span>
+                        NEW USER
+                    </a>
+                </div>
+            </div>
+
+            <!-- Users table -->
+            <div class="row-fluid table">
+                <table class="table table-hover">
+                    <thead>
+                    <tr>
+                        <th class="span4 sortable">
+                            姓名
+                        </th>
+                        <th class="span3 sortable">
+                            <span class="line"></span>阿姨种类
+                        </th>
+                        <th class="span2 sortable">
+                            <span class="line"></span>地址
+                        </th>
+                        <th class="span3 sortable align-right">
+                            <span class="line"></span>薪水
+                        </th>
+                        <th class="span3 sortable align-right">
+                            <span class="line"></span>电话
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <!-- row -->
+                    {volist name="userlist" id="vo"}
+                    <tr class="first">
+                        <td>
+                            {$vo.name}
+                        </td>
+                        <td>
+                            {$vo.cate}
+                        </td>
+                        <td>
+                            {$vo.address}
+                        </td>
+                        <td>
+                            {$vo.money}
+                        </td>
+
+                        <td class="align-right">
+                            {$vo.phone}
+                        </td>
+                        <td class="align-right">
+                            <a href="user_mod?user_id={$vo.id}">修改</a>
+                            <a href="user_delete?user_id={$vo.id}">删除</a>
+                        </td>
+
+                    </tr>
+                    {/volist}
+
+                    <!-- row -->
+
+                    <!-- row -->
+
+                    <!-- row -->
+
+                    <!-- row -->
+
+                    <!-- row -->
+
+                    <!-- row -->
+
+                    <!-- row -->
+
+                    <!-- row -->
+
+                    </tbody>
+                </table>
+            </div>
+            <div class="pagination pull-right">
+                <ul>
+                    <li><a href="#">&#8249;</a></li>
+                    <li><a class="active" href="#">1</a></li>
+                    <li><a href="#">2</a></li>
+                    <li><a href="#">3</a></li>
+                    <li><a href="#">4</a></li>
+                    <li><a href="#">5</a></li>
+                    <li><a href="#">&#8250;</a></li>
+                </ul>
+            </div>
+            <!-- end users table -->
+        </div>
+    </div>
+</div>

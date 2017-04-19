@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html class="login-bg">
+<head>
+	<title>登录</title>
+    
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	
+    <!-- bootstrap -->
+
+    <link href="/__PUBLIC__/admin/css/bootstrap/bootstrap.css" rel="stylesheet" />
+    <link href="/__PUBLIC__/admin/css/bootstrap/bootstrap-responsive.css" rel="stylesheet" />
+    <link href="/__PUBLIC__/admin/css/bootstrap/bootstrap-overrides.css" type="text/css" rel="stylesheet" />
+
+    <!-- global styles -->
+    <link rel="stylesheet" type="text/css" href="/__PUBLIC__/admin/css/layout.css" />
+    <link rel="stylesheet" type="text/css" href="/__PUBLIC__/admin/css/elements.css" />
+    <link rel="stylesheet" type="text/css" href="/__PUBLIC__/admin/css/icons.css" />
+
+    <!-- libraries -->
+    <link rel="stylesheet" type="text/css" href="/__PUBLIC__/admin/css/lib/font-awesome.css" />
+    
+    <!-- this page specific styles -->
+    <link rel="stylesheet" href="/__PUBLIC__/admin/css/compiled/signin.css" type="text/css" media="screen" />
+
+    <!-- open sans font -->
+
+
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /></head>
+<body>
+
+
+    <div class="row-fluid login-wrapper">
+        <a class="brand" href="index.html"></a>
+
+        <div class="span4 box">
+            <div class="content-wrap">
+                <h6>登录界面</h6>
+                <form  method="POST" action="" enctype="multipart/form-data">
+                <input class="span12" type="text" name="username" placeholder="用户名" />
+                <input class="span12" type="password" name="password" placeholder="密码" />
+                <a href="#" class="forgot">忘记密码?</a>
+                <div class="remember">
+                    <input id="remember-me" type="checkbox" />
+                    <label for="remember-me">记住我</label>
+                </div>
+                    <input class="btn btn-primary btn" type="submit" value="登录" />
+
+                </form>
+            </div>
+        </div>
+
+        <div class="span4 no-account">
+            <p>没有账户?</p>
+            <a href="signup.html">注册</a>
+        </div>
+    </div>
+
+	<!-- scripts -->
+    <script src="/__PUBLIC__/admin/js/jquery-latest.js"></script>
+    <script src="/__PUBLIC__/admin/js/bootstrap.min.js"></script>
+    <script src="/__PUBLIC__/admin/js/theme.js"></script>
+
+    <!-- pre load bg imgs -->
+    <script type="text/javascript">
+        $(function () {
+            // bg switcher
+            var $btns = $(".bg-switch .bg");
+            $btns.click(function (e) {
+                e.preventDefault();
+                $btns.removeClass("active");
+                $(this).addClass("active");
+                var bg = $(this).data("img");
+
+                $("html").css("background-image", "url('img/bgs/" + bg + "')");
+            });
+
+        });
+    </script>
+
+</body>
+</html>
