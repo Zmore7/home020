@@ -51,7 +51,7 @@ class User extends Model
             return $db;
         }
     }
-    public function getUserList(){
+    public function getUserList(){//获取用户列表
         $db = Db::name('user')
             ->select();
         return $db;
@@ -88,6 +88,7 @@ class User extends Model
             return $db;
         }
     }
+
     public function getAdminList(){
         $data = Db::name('admin')
             ->select();

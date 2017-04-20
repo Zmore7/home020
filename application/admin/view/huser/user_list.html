@@ -73,6 +73,9 @@
                         <th class="span3 sortable align-right">
                             <span class="line"></span>电话
                         </th>
+                        <th class="span3 sortable align-right">
+                            <span class="line"></span>操作
+                        </th>
                     </tr>
                     </thead>
                     <tbody>
@@ -88,15 +91,16 @@
                         <td>
                             {$vo.address}
                         </td>
-                        <td>
+                        <td class="align-right">
                             {$vo.money}
                         </td>
 
                         <td class="align-right">
                             {$vo.phone}
                         </td>
-                        <td class="align-right">
+                        <td nowrap="" class="align-right">
                             <a href="user_mod?user_id={$vo.id}">修改</a>
+
                             <a href="user_delete?user_id={$vo.id}">删除</a>
                         </td>
 
