@@ -5,21 +5,43 @@
     <div class="container-fluid">
         <div id="pad-wrapper" class="new-user">
             <div class="row-fluid header">
-                <h3>阿姨信息修改</h3>
+                <h3>添加用户</h3>
             </div>
 
             <div class="row-fluid form-wrapper">
                 <!-- left column -->
                 <div class="span9 with-sidebar">
                     <div class="container">
-                        <form class="new_user_form inline-input" action="user_mod" method="post"/>
-                        <div class="span12 field-box">
-                            <label>姓名:</label>
-                            <input class="span9" name="name" type="text" value=""/>
-                            <input class="span9" name="id" type="hidden" value=""/>
+                        <form class="new_user_form inline-input" action="new_user" method="post"/>
+                        <div style="display: none">
+
                         </div>
                         <div class="span12 field-box">
-                            <label>分类:</label>
+
+                            <label>用户名:</label>
+                            <input class="span9" name="username" type="text" value=""/>
+
+                        </div>
+                        <div class="span12 field-box">
+
+                            <label>密码:</label>
+                            <input class="span9" name="pass1" type="text" value=""/>
+
+                        </div>
+                        <div class="span12 field-box">
+
+                            <label>确认密码:</label>
+                            <input class="span9" name="pass2" type="text" value=""/>
+
+                        </div>
+                        <div class="span12 field-box">
+
+                            <label>姓名:</label>
+                            <input class="span9" name="name" type="text" value=""/>
+
+                        </div>
+                        <div class="span12 field-box">
+                            <label>需求:</label>
                             <div class="ui-select span5">
                                 <select>
                                     <option value="AK" />Alaska
@@ -37,27 +59,17 @@
                             <input class="span9" name="address" type="text" value=""/>
                         </div>
                         <div class="span12 field-box">
-                            <label>年龄:</label>
-                            <input class="span9" name="age" type="text" value=""/>
+                            <label>薪资:</label>
+                            <input class="span9" name="money" type="text" value=""/>
                         </div>
                         <div class="span12 field-box">
                             <label>手机:</label>
                             <input class="span9" name="phone" type="text" value=""/>
                         </div>
-                        <div class="span12 field-box">
-                            <label>性别:</label>
-
-                        </div>
-                        <div class="span12 field-box">
-                            <label>服务意向:</label>
-                            <input class="span9" type="text" name="purpose" value=""/>
-                        </div>
-
 
                         <div class="span11 field-box actions">
-                            <input type="submit" class="btn-glow primary" value="修改信息" />
-                            <span>OR</span>
-                            <input type="reset" value="放弃修改" class="reset" />
+                            <input type="submit" class="btn-glow primary" value="确定添加" />
+
                         </div>
                         </form>
                     </div>

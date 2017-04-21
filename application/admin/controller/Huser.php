@@ -21,7 +21,8 @@ class Huser extends Base
 
     public function user_detail()
     {
-        $this->view->engine->layout('layout/admin_layout');//引入后端模板文件：layout/admin_layout
+        $this->view->engine->layout('layout/admin_layout');
+        //引入后端模板文件：layout/admin_layout
         $User = new User();
 
         $userid = input('get.user_id');
@@ -34,7 +35,7 @@ class Huser extends Base
                 $this->error('非法操作');//防止查不存在的用户
             }
         } else {
-            $this->error('非法操作');//防止auntid为空
+            $this->error('非法操作');//避免id为空
         }
     }
 
@@ -47,7 +48,7 @@ class Huser extends Base
         $User = new User();
         $rst = $User->delAunt($user_id);
         if ($rst == 0) {
-            return $this->error('用户不存在');
+            return $this->error('非法操作');
         } else {
             if ($rst) {
                 return $this->success("删除成功");
@@ -55,41 +56,6 @@ class Huser extends Base
                 return $this->error('删除失败');
             }
         }
-    }
-
-    public function newUser()//新增用户功能
-    {
-        //如果post数据了
-        if (request()->isPost()) {
-            $mima = input('pass1');
-            $data = [
-                'id' => input('id'),
-                'username' => input('username'),
-                'password' => md5($mima),//两次密码的验证放在前端验证
-                'age' => input('age'),
-                'address' => input('address'),
-                'name' => input('name'),
-                'phone' => input('phone'),
-                'salary' => input('salary'),
-            ];
-
-            //验证内容
-            $validate = validate('User');
-            $result = $this->validate($_POST, 'User');
-            if (true !== $result) {
-                // 验证失败 输出错误信息
-                return $this->error($result);
-            }
-
-            //添加到数据库
-            $db = \think\Db::name('aunt')->insert($data);
-            if ($db) {
-                $this->success('注册成功', 'Auth/login');//注册成功应该跳转到登陆页面
-            }
-
-        }
-        $this->view->engine->layout('layout/admin_layout');//引入后端模板文件：layout/admin_layout
-        return $this->fetch('newuser');
     }
 
     public function user_mod()
@@ -100,7 +66,8 @@ class Huser extends Base
                 return $this->error('非法操作');
             }
             $user_data = $User->getUserDetail(input('get.user_id'));
-            $this->view->engine->layout('layout/admin_layout');//引入后端模板文件：layout/admin_layout
+            $this->view->engine->layout('layout/admin_layout');
+            //引入后端模板文件：layout/admin_layout
             $this->assign('userdetail', $user_data[0]);
             return $this->fetch('mod_user');
         } else {
@@ -115,6 +82,31 @@ class Huser extends Base
                 return $this->error('非法操作');
             }
         }
+    }
+
+    public function new_user()
+    {
+        if(request()->isPost()){
+            //todo 验证没写，还有一个选项的完善
+            $data = [
+                'id' => input('id'),
+                'username' => input('username'),
+                'password' => md5(input('pass1')),//两次密码的验证放在前端验证
+
+                'address' => input('address'),
+                'name' => input('name'),
+                'phone' => input('phone'),
+                'money' => input('money'),
+            ];
+            //加入数据库
+            $db = \think\Db::name('user')->insert($data);
+            if ($db) {
+                $this->success('注册成功', 'Huser/user_list');//注册成功应该跳转到登陆页面
+            }
+        }
+        $this->view->engine->layout('layout/admin_layout');//引入模板
+        return $this->fetch('new_user');
+
     }
 }
 
