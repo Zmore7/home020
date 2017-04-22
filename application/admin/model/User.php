@@ -93,4 +93,44 @@ class User extends Model
             ->select();
         return $data;
     }
+    public function getAdminDetail($id){
+        $db = Db::name('admin')
+            ->where('id','=',$id)
+            ->select();
+        return $db;
+    }
+    public function editAdmin($id,$data){
+        $db = Db::name('admin')
+            ->where('id','=',$id)
+            ->select();
+        if($db==NULL){
+            return 0;
+        }else{
+            $db = Db::name('admin')
+                ->where('id','=',$id)
+                ->update($data);
+            return $db;
+        }
+    }
+    public function delAdmin($id){
+        $db = Db::name('admin')
+            ->where('id','=',$id)
+            ->select();
+        if($db==NULL){
+            return 0;
+        }else{
+            $db = Db::name('admin')
+                ->where('id','=',$id)
+                ->delete();
+            return $db;
+        }
+    }
+    public function addAdmin($data){
+        $data['created_time'] = date("Y:m:d H:i:s");
+        $data['password'] = md5($data['password']);
+        $db = Db::name('admin')
+            ->insert($data);
+        return $db;
+    }
+
 }
