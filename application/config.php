@@ -244,7 +244,7 @@ return [
     //输出替换
     //一个问题是为什么前面有homeo2o？
     'view_replace_str'  =>  [
-        '__PUBLIC__'=>'homeo2o.github.io/public/static',//从git上面pull下来，注意文件夹名字就直接用这个吧~
+        '__PUBLIC__'=>'home020/public/static',//从git上面pull下来，注意文件夹名字就直接用这个吧~
         '__ROOT__' => '/',
 
     ]
