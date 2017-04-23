@@ -3,7 +3,7 @@
     <div class="container-fluid">
         <div id="pad-wrapper" class="users-list">
             <div class="row-fluid header">
-                <h3>管理员列表</h3>
+                <h3>服务列表</h3>
                 <div class="span10 pull-right">
                     <input type="text" class="span5 search" placeholder="Type a user's name..." />
 
@@ -54,26 +54,31 @@
             </div>
 
             <!-- Users table -->
-            <div class="row-fluid table">
+            <div class="row-fluid" >
                 <table class="table table-hover">
                     <thead>
                     <tr>
-                        <th class="span4 sortable">
-                            商品名称
+                        <th class="span3">
+                            <span class="line"></span>全选
+                            <input type="checkbox" />
+
                         </th>
-                        <th class="span4 sortable">
-                            <span class="line"></span>售价
+                        <th class="span3">
+                            <span class="line"></span>名称
                         </th>
-                        <th class="span4 sortable">
-                            <span class="line"></span>排序
+                        <th class="span3">
+                            <span class="line"></span>种类
                         </th>
-                        <th class="span4 sortable">
-                            <span class="line"></span>SKU\库存
+                        <th class="span3">
+                            <span class="line"></span>价格
                         </th>
-                        <th class="span4 sortable">
-                            <span class="line"></span>审核状态
+                        <th class="span3">
+                            <span class="line"></span>服务详情
                         </th>
-                        <th class="span3 sortable align-right">
+                        <th class="span3">
+                            <span class="line"></span>热度（点击次数）
+                        </th>
+                        <th class="span3">
                             <span class="line"></span>操作
                         </th>
                     </tr>
@@ -82,44 +87,40 @@
                     <!-- row -->
                     {volist name="goodslist" id="vo"}
                     <tr class="first">
-                        <td>
-                            <img src="/__PUBLIC__/static/admin/img/contact-img.png" class="img-circle avatar hidden-phone" />
-                            {$vo.goods_name}
+                        <td >
+                            <input type="checkbox" />
+
                         </td>
-                        <td>
+                        <td >
+                            <a href="#">{$vo.goods_name} </a>
+                        </td>
+                        <td class="description" >
+                            {eq name='vo.goods_cid' value='1'}月嫂{/eq}
+                            {eq name='vo.goods_cid' value='2'}育儿嫂{/eq}
+                            {eq name='vo.goods_cid' value='3'}家务员{/eq}
+                            {eq name='vo.goods_cid' value='4'}小时工{/eq}
+                            {eq name='vo.goods_cid' value='5'}养老保姆{/eq}
+                        </td>
+                        <td class="description" >
                             {$vo.goods_price}
                         </td>
-                        <td>
-                            {$vo.goods_order}
+                        <td class="description" >
+                            {$vo.information}
                         </td>
-                        <td>
-                            {$vo.goods_number}
+                        <td class="description" >
+                            {$vo.clickcount}
                         </td>
-                        <td>
-                            {eq name="vo.is_checked" value="0"}审查未通过{/eq}
-                            {eq name="vo.is_checked" value="1"}审查通过{/eq}
-                        </td>
-                        <td class="align-right">
-                            <a href="goods_mod?good_id={$vo.goods_id}">修改</a>
-                            <a href="goods_delete?good_id={$vo.goods_id}">删除</a>
+                        <td >
+                            <span class="label label-success">Active</span>
+                            <ul class="actions" >
+
+                                <li><a href="user_mod?goods_id={$vo.goods_id}"><i class="table-edit"></i></a></li>
+
+                                <li class="last"><a href="user_delete?goods_id={$vo.goods_id}"><i class="table-delete"></i></a></li>
+                            </ul>
                         </td>
                     </tr>
                     {/volist}
-
-                    <!-- row -->
-
-                    <!-- row -->
-
-                    <!-- row -->
-
-                    <!-- row -->
-
-                    <!-- row -->
-
-                    <!-- row -->
-
-                    <!-- row -->
-
                     <!-- row -->
 
                     </tbody>

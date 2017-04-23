@@ -51,6 +51,7 @@ class User extends Model
             return $db;
         }
     }
+    //用户的操作
     public function getUserList(){
         $db = Db::name('user')
             ->select();
@@ -88,6 +89,8 @@ class User extends Model
             return $db;
         }
     }
+
+    //admin的操作
     public function getAdminList(){
         $data = Db::name('admin')
             ->select();

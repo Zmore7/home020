@@ -32,4 +32,23 @@ class Goods extends Model
         }
 
     }
+    public function getGoodsDetail($id){
+        $db = Db::name('goods')
+            ->where('goods_id','=',$id)
+            ->select();
+        return $db;
+    }
+    public function editGoods($id,$data){
+        $db = Db::name('goods')
+            ->where('goods_id','=',$id)
+            ->select();
+        if($db==NULL){
+            return 0;
+        }else{
+            $db = Db::name('goods')
+                ->where('goods_id','=',$id)
+                ->update($data);
+            return $db;
+        }
+    }
 }
