@@ -14,23 +14,24 @@
                     <!-- left column -->
                     <div class="span9 with-sidebar">
                         <div class="container">
-                            <form class="new_user_form inline-input" action="admin_add" method="post"/>
+                            <form class="new_user_form inline-input" action="cate_add" method="post"/>
+                            <div class="span12 field-box">
+                                <label>分类父级:</label>
+                                <select name="parent_id">
+                                    <option value="9999">作为分类父级</option>
+                                    {volist name="catelist" id="vo"}
+                                    <option value="{$vo.cat_id}">{$vo.cat_name}</option>
+                                    {/volist}
+                                </select>
+                            </div>
                                 <div class="span12 field-box">
                                     <label>分类名:</label>
                                     <input class="span9" type="text" name="cat_name"/>
                                 </div>
-                            <div class="span12 field-box">
-                                <label>分类父级:</label>
-                                <select name="parent_id">
-                                    <option value="0">作为分类父级</option>
 
-                                    <option></option>
-
-                                </select>
-                            </div>
 
                                 <div class="span11 field-box actions">
-                                    <input type="submit" class="btn-glow primary" value="Create user" />
+                                    <input type="submit" class="btn-glow primary" value="新建分类" />
                                     <span>OR</span>
                                     <input type="reset" value="Cancel" class="reset" />
                                 </div>
