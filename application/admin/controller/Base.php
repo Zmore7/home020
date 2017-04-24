@@ -9,7 +9,7 @@ class Base extends Controller
         if(session('username')){
 
         }  else {
-            return $this->error('未登录','Index/Auth/login');
+            return $this->error('未登录','Admin/Auth/login');
         }
     }
 

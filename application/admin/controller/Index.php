@@ -9,23 +9,16 @@ use think\Controller;
 use think\Db;
 use app\admin\model\User;
 use app\admin\model\Upload;
-class Index extends Controller
+class Index extends Base
 {
 
     public function index(){//管理员后端首页
-        if(!input('session.username')){
-            return $this -> error('非法操作','Index/Auth/login');
-        }
         $this -> view -> engine->layout('layout/admin_layout');//引入后端模板文件：layout/admin_layout
         return $this -> fetch('content');
     }
 
     public function aunt_list(){
         //todo管理员端显示阿姨列表
-
-        if(!input('session.username')){
-            return $this -> error('非法操作','Index/Auth/login');
-        }
         $User = new User();
         $user_data = $User->getAuntList();
         //var_dump($user_data);
@@ -34,9 +27,6 @@ class Index extends Controller
         return $this -> fetch('aunt_list');
     }
     public function aunt_detail(){//阿姨详情
-        if(!input('session.username')){
-            return $this -> error('非法操作','Index/Auth/login');
-        }
         $this -> view -> engine->layout('layout/admin_layout');//引入后端模板文件：layout/admin_layout
         $User = new User();
 
@@ -54,9 +44,6 @@ class Index extends Controller
         }
     }
     public function aunt_delete(){
-        if(!input('session.username')){
-            return $this -> error('非法操作','Index/Auth/login');
-        }
         if(!input('get.aunt_id')){
             return $this->error('非法操作');
         }
@@ -74,9 +61,6 @@ class Index extends Controller
         }
     }
     public function aunt_mod(){
-        if(!input('session.username')){
-            return $this -> error('非法操作','Index/Auth/login');
-        }
         $User = new User();
         if(!input('post.')){
             if(!input('get.aunt_id')){

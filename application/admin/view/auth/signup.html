@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html class="login-bg">
+<head>
+	<title>阿姨的注册页面</title>
+    
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	
+    <!-- bootstrap -->
+    <link href="/__PUBLIC__/admin/css/bootstrap/bootstrap.css" rel="stylesheet" />
+    <link href="/__PUBLIC__/admin/css/bootstrap/bootstrap-responsive.css" rel="stylesheet" />
+    <link href="/__PUBLIC__/admin/css/bootstrap/bootstrap-overrides.css" type="text/css" rel="stylesheet" />
+
+    <!-- global styles -->
+    <link rel="stylesheet" type="text/css" href="/__PUBLIC__/admin/css/layout.css" />
+    <link rel="stylesheet" type="text/css" href="/__PUBLIC__/admin/css/elements.css" />
+    <link rel="stylesheet" type="text/css" href="/__PUBLIC__/admin/css/icons.css" />
+
+    <!-- libraries -->
+    <link rel="stylesheet" type="text/css" href="/__PUBLIC__/admin/css/lib/font-awesome.css" />
+    
+    <!-- this page specific styles -->
+    <link rel="stylesheet" href="/__PUBLIC__/admin/css/compiled/signup.css" type="text/css" media="screen" />
+
+    <!-- open sans font -->
+
+
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /></head>
+<body>
+    <div class="header">
+        <a href="index.html">
+            <img src="/__PUBLIC__/admin/img/logo.png" class="logo" />
+        </a>
+    </div>
+    <div class="row-fluid login-wrapper">
+        <div class="box">
+
+            这里是阿姨注册的部分！
+            <form  method="post" action="signup" enctype="multipart/form-data">
+            <div class="content-wrap">
+                <h6>Sign Up</h6>
+                用户照片上传：<input type="file" name="aunt_avatar" />
+                <input class="span12" name="username" type="text" placeholder="用户名" />
+                <input class="span12" name="phone" type="text" placeholder="手机号码" />
+                <input class="span12" name="name" type="text" placeholder="姓名" />
+                <input class="span12" name="age" type="text" placeholder="年龄" />
+                <input class="span12" name="address" type="text" placeholder="家庭地址" />
+                <input class="span12" name="salary" type="text" placeholder="期望薪资" />
+                <input class="span12" name="pass1" type="password" placeholder="密码" />
+                <input class="span12" name="pass2" type="password" placeholder="再次确认密码" />
+                <input class="btn btn-primary btn" type="submit" value="确认" />
+            </div>
+            </form>
+
+        </div>
+
+        <div class="span4 already">
+            <p>Already have an account?</p>
+            <a href="login.html">Sign in</a>
+        </div>
+    </div>
+
+	<!-- scripts -->
+    <script src="/__PUBLIC__/admin/js/jquery-latest.js"></script>
+    <script src="/__PUBLIC__/admin/js/bootstrap.min.js"></script>
+    <script src="/__PUBLIC__/admin/js/theme.js"></script>
+
+</body>
+</html>

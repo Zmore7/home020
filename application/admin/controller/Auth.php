@@ -1,18 +1,18 @@
 <?php
 /**
  * Created by PhpStorm.
- * User: Floating-Two
- * Date: 2017/4/16
- * Time: 21:02
- * 包含月嫂的登录
+ * User: GTX
+ * Date: 2017/4/24
+ * Time: 9:25
+ * admin登录验证
  */
 
-namespace app\index\controller;
-
+namespace app\admin\controller;
 use think\Controller;
 use think\Upload;
 use think\image;
 use think\Session;
+
 class Auth extends Controller
 {
     public function login()
@@ -32,7 +32,7 @@ class Auth extends Controller
                 return $this->error($result);
             }
 
-            $db = \think\Db::name('aunt')->where('username', '=', $username)->find();
+            $db = \think\Db::name('admin')->where('username', '=', $username)->find();
             //var_dump($db);
             //var_dump($password);
 
@@ -42,7 +42,7 @@ class Auth extends Controller
                     //这是设置session的
                     Session::set('username', $username);
 
-                    return $this->success('阿姨登陆成功', 'index/index');
+                    return $this->success('登陆成功', 'index/index');
                 } else {
                     return $this->error('密码错误');
                 }
@@ -51,7 +51,7 @@ class Auth extends Controller
         }
         return $this->fetch('login');
     }
-
+    /*管理员不允许注册
     public function signup()
     {
 
@@ -78,14 +78,14 @@ class Auth extends Controller
             }
             //todo 配合validate的图片上传以及对修改信息加入validate
             //添加到数据库
-            $db = \think\Db::name('aunt')->insert($data);
+            $db = \think\Db::name('admin')->insert($data);
             if ($db) {
                 $this->success('注册成功', 'Auth/login');//注册成功应该跳转到登陆页面
             }
             //todo 文件上传无法实现
         }
         return $this->fetch('signup');
-    }
+    }*/
     public function logout(){
         session::clear();
         return $this->success('注销成功', 'Auth/login');
