@@ -1,41 +1,29 @@
 
-
-
 	<!-- main container -->
     <div class="content">
         
         <div class="container-fluid">
             <div id="pad-wrapper" class="new-user">
                 <div class="row-fluid header">
-                    <h3>新建新的分类</h3>
+                    <h3>分类信息修改</h3>
                 </div>
 
                 <div class="row-fluid form-wrapper">
                     <!-- left column -->
                     <div class="span9 with-sidebar">
                         <div class="container">
-                            <form class="new_user_form inline-input" action="cate_add" method="post"/>
-                            <div class="span12 field-box">
-                                <label>分类父级:</label>
-                                <select name="parent_id">
-                                    <option value="9999">作为分类父级</option>
-                                    {volist name="catelist" id="vo"}
-                                    {eq name="vo.cat_level" value="0"}
-                                    <option value="{$vo.cat_id}">{$vo.cat_name}</option>
-                                    {/eq}
-                                    {/volist}
-                                </select>
-                            </div>
+                            <form class="new_user_form inline-input" action="cate_mod" method="post"/>
                                 <div class="span12 field-box">
-                                    <label>分类名:</label>
-                                    <input class="span9" type="text" name="cat_name"/>
+                                    <label>分类名修改</label>
+                                    <input class="span9" name="cat_name" type="text" value="{$catedetail.cat_name}"/>
+                                    <input class="span9" name="cat_id" type="hidden" value="{$catedetail.cat_id}"/>
                                 </div>
 
 
-                                <div class="span11 field-box actions">
-                                    <input type="submit" class="btn-glow primary" value="新建分类" />
+                            <div class="span11 field-box actions">
+                                    <input type="submit" class="btn-glow primary" value="修改信息" />
                                     <span>OR</span>
-                                    <input type="reset" value="Cancel" class="reset" />
+                                    <input type="reset" value="放弃修改" class="reset" />
                                 </div>
                             </form>
                         </div>
@@ -65,4 +53,3 @@
         </div>
     </div>
     <!-- end main container -->
-

@@ -13,14 +13,17 @@ use think\Model;
 use think\Db;
 class Cate extends Model
 {
-    public function getCateList(){
+    public function getCateList($level){
         $db = Db::name('category')
+            ->where('cat_level','=',$level)
+            ->order('parent_id asc')
             ->select();
         return $db;
     }
     public function addCate($data){
         $data['created_time'] = date("Y:m:d H:i:s");
         if($data['parent_id']==9999){
+            $data['parent_id'] = 0;
             $data['cat_level']=0;
         }else{
             //目前只做到二级分类（0、1、2级）
@@ -52,5 +55,31 @@ class Cate extends Model
                 ->delete();
         }
         return $db;
+    }
+    public function getCateDetail($id){
+        $db = Db::name('category')
+            ->where('parent_id','=',$id)
+            ->select();
+
+        return $db;
+    }
+    public function editCate($id,$data){
+        $db = Db::name('category')
+            ->where('cat_id','=',$id)
+            ->select();
+        if($db==NULL){
+            return 0;
+        }else{
+            $mod = Db::name('category')
+                ->where('cat_id','=',$id)
+                ->update($data);
+            return $mod;
+        }
+    }
+    public function getServNumber(){
+        $db = Db::name('category')
+            ->select();
+        //var_dump($db);
+
     }
 }

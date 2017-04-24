@@ -65,16 +65,19 @@
                             <span class="line"></span>添加时间
                         </th>
                         <th class="span3 sortable align-right">
+                            <span class="line"></span>分类下服务
+                        </th>
+                        <th class="span3 sortable align-right">
                             <span class="line"></span>操作
                         </th>
                     </tr>
                     </thead>
                     <tbody>
                     <!-- row -->
-                    {volist name="catelist" id="vo"}
+                    {volist name="catelist_p" id="vo"}
                     <tr class="first">
                         <td>
-                            <img src="/__PUBLIC__/static/admin/img/contact-img.png" class="img-circle avatar hidden-phone" />
+
                             {$vo.cat_name}
                         </td>
                         <td>
@@ -85,6 +88,23 @@
                             <a href="cate_del?cate_id={$vo.cat_id}">删除</a>
                         </td>
                     </tr>
+                    {volist name="catelist_s" id="vos"}
+                    {eq name="vos.parent_id" value="$vo.cat_id"}
+                    <tr class="first">
+                        <td>
+
+                            &nbsp;&nbsp;&nbsp;&nbsp;{$vos.cat_name}
+                        </td>
+                        <td>
+                            {$vos.created_time}
+                        </td>
+                        <td class="align-right">
+                            <a href="cate_mod?cate_id={$vos.cat_id}">修改</a>
+                            <a href="cate_del?cate_id={$vos.cat_id}">删除</a>
+                        </td>
+                    </tr>
+                    {/eq}
+                    {/volist}
                     {/volist}
 
                     <!-- row -->
