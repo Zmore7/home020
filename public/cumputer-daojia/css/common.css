@@ -1,0 +1,16 @@
+.fl {
+  float: left;
+}
+.cls:after {
+  content: "\20";
+  display: block;
+  height: 0;
+  clear: both;
+}
+a {
+  color: #525a66;
+}
+a:hover {
+  color: rgba(255,0,0,0.8);
+  text-decoration: none;
+}

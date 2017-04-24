@@ -1,0 +1,23 @@
+{
+  "name": "computer-daojia",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Raoul1996/computer-daojia.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Raoul1996/computer-daojia/issues"
+  },
+  "homepage": "https://github.com/Raoul1996/computer-daojia#readme",
+  "dependencies": {
+    "normalize.css": "^6.0.0",
+    "reset.css": "^2.0.2"
+  }
+}

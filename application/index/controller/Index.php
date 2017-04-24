@@ -8,8 +8,12 @@ class Index extends Controller
 
     public function index()
     {
-
-        return $this->fetch('index');
+        $this -> view -> engine->layout('layout/layout1');
+        return $this->fetch('index_m');
+    }
+    public function cate_list(){
+        $this -> view -> engine->layout('layout/layout1');
+        return $this->fetch('cate_list');
     }
     public function wrisess(){
         $data = input('session.');
