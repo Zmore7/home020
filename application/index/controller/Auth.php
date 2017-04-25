@@ -15,7 +15,48 @@ use think\image;
 use think\Session;
 class Auth extends Controller
 {
-    public function login()
+    public function login(){
+
+        return $this->fetch('login_switch');
+    }
+    public function aunt_login()
+{
+
+    if (request()->isPost()) {
+        $mima = input('password');
+        $username = input('username');
+        $password = md5($mima);
+
+        //验证
+        $validate = validate('User');
+        //$result = $this->validate($_POST, 'User');
+        $result = $validate->scene('login')->check($_POST);
+        if (true !== $result) {
+            // 验证失败 输出错误信息
+            return $this->error($result);
+        }
+
+        $db = \think\Db::name('aunt')->where('username', '=', $username)->find();
+        //var_dump($db);
+        //var_dump($password);
+
+
+        if ($db) {
+            if ($db['password'] == $password) {
+                //这是设置session的
+                Session::set('aunt_username', $username);
+
+                return $this->success('阿姨登陆成功', 'index/index');
+            } else {
+                return $this->error('密码错误');
+            }
+        }
+
+    }
+    return $this->fetch('aunt_login');
+}
+
+    public function user_login()//用户登录
     {
 
         if (request()->isPost()) {
@@ -32,7 +73,7 @@ class Auth extends Controller
                 return $this->error($result);
             }
 
-            $db = \think\Db::name('aunt')->where('username', '=', $username)->find();
+            $db = \think\Db::name('user')->where('username', '=', $username)->find();
             //var_dump($db);
             //var_dump($password);
 
@@ -40,17 +81,18 @@ class Auth extends Controller
             if ($db) {
                 if ($db['password'] == $password) {
                     //这是设置session的
-                    Session::set('username', $username);
+                    Session::set('user_username', $username);
 
-                    return $this->success('阿姨登陆成功', 'index/index');
+                    return $this->success('用户登陆成功', 'index/index');
                 } else {
                     return $this->error('密码错误');
                 }
             }
 
         }
-        return $this->fetch('login');
+        return $this->fetch('user_login');
     }
+
 
     public function signup()
     {
@@ -88,6 +130,6 @@ class Auth extends Controller
     }
     public function logout(){
         session::clear();
-        return $this->success('注销成功', 'Auth/login');
+        return $this->success('注销成功');
     }
 }

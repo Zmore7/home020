@@ -1,13 +1,17 @@
 <?php
+
 namespace app\index\controller;
 use think\Controller;
 
-class Index extends Controller
+class Index extends Base
 {
     //访问index
 
     public function index()
     {
+        //获得用户信息
+
+        //var_dump($auntdata);var_dump($userdata);
         $this -> view -> engine->layout('layout/layout1');
         return $this->fetch('index_m');
     }

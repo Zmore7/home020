@@ -36,12 +36,26 @@
             <a href="#">
                 <li class="nav-item">保姆</li>
             </a>
-            <a href="#">
-                <li class="nav-item">登录</li>
-            </a>
+            {if condition="$user_name==NULL"}
+            {if condition="$aunt_name==NULL"}
             <a href="#">
                 <li class="nav-item">加入我们</li>
             </a>
+            <a href="{:url('Index/Auth/login')}">
+                <li class="nav-item">登录</li>
+            </a>
+            {/if}
+            {/if}
+            {if condition="$user_name || $aunt_name!=NULL"}
+            <a href="#">
+                <li class="nav-item">用户中心</li>
+            </a>
+            <a href="{:url('Index/Auth/logout')}">
+                <li class="nav-item">登出</li>
+            </a>
+            {/if}
+
+
 
         </ul>
     </div>

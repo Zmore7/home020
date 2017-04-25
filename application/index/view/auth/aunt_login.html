@@ -28,20 +28,6 @@
     <!--[if lt IE 9]>
       <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
-    <script>
-        function aunt_login() {
-            //alert('test');
-            var url = "aunt_login"
-            //alert(url);
-            window.location.href=url;
-        }
-        function user_login() {
-            //alert('test');
-            var url = "user_login"
-            //alert(url);
-            window.location.href=url;
-        }
-    </script>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /></head>
 <body>
 
@@ -51,8 +37,8 @@
 
         <div class="span4 box">
             <div class="content-wrap">
-                <h6>用户/阿姨登录界面</h6>
-                <form  method="POST" action="" enctype="multipart/form-data">
+                <h6>阿姨中心登录界面</h6>
+                <form  method="POST" action="{:url('Index/Auth/aunt_login')}" enctype="multipart/form-data">
                 <input class="span12" type="text" name="username" placeholder="用户名" />
                 <input class="span12" type="password" name="password" placeholder="密码" />
                 <a href="#" class="forgot">忘记密码?</a>
@@ -60,8 +46,8 @@
                     <input id="remember-me" type="checkbox" />
                     <label for="remember-me">记住我</label>
                 </div>
-                    <input class="btn btn-primary btn" type="button" value="用户登录" onclick="user_login()"/>
-                    <input class="btn btn-primary btn" type="button" value="阿姨登录" onclick="aunt_login()"/>
+                    <input class="btn btn-primary btn" type="submit" value="登录" />
+
                 </form>
             </div>
         </div>

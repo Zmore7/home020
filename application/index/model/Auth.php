@@ -17,4 +17,5 @@ class Auth extends Model
         //向session中进一步写入更多详细信息
         $db = Db::name('');
     }
+
 }
