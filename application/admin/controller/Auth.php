@@ -33,6 +33,7 @@ class Auth extends Controller
             }
 
             $db = \think\Db::name('admin')->where('username', '=', $username)->find();
+            //$id = $db['id'];
             //var_dump($db);
             //var_dump($password);
 
@@ -41,7 +42,7 @@ class Auth extends Controller
                 if ($db['password'] == $password) {
                     //这是设置session的
                     Session::set('username', $username);
-
+                    //Session::set('id', $id);
                     return $this->success('登陆成功', 'index/index');
                 } else {
                     return $this->error('密码错误');
