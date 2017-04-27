@@ -14,6 +14,9 @@ class Index extends Base
 
     public function index(){//管理员后端首页
         $this -> view -> engine->layout('layout/admin_layout');//引入后端模板文件：layout/admin_layout
+        $num['user']=Db::name( 'user')->count();
+        $num['aunt']=Db::name( 'aunt')->count();
+        $this -> assign('num',$num);
         return $this -> fetch('content');
     }
 
@@ -21,6 +24,7 @@ class Index extends Base
         //todo管理员端显示阿姨列表
         $User = new User();
         $user_data = $User->getAuntList();
+
         //var_dump($user_data);
         $this -> view -> engine->layout('layout/admin_layout');//引入后端模板文件：layout/admin_layout
         $this -> assign('userlist',$user_data);
