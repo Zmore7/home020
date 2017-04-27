@@ -10,7 +10,9 @@ class Index extends Base
     public function index()
     {
         //获得用户信息
-
+        if (session('username')!=0){
+            $count=\think\Db::name('count')->field('num')->setInc('num',1);
+        }
         //var_dump($auntdata);var_dump($userdata);
         $this -> view -> engine->layout('layout/layout1');
         return $this->fetch('index_m');

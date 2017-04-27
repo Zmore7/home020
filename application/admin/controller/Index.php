@@ -13,9 +13,14 @@ class Index extends Base
 {
 
     public function index(){//管理员后端首页
+        //统计数据
         $this -> view -> engine->layout('layout/admin_layout');//引入后端模板文件：layout/admin_layout
         $num['user']=Db::name( 'user')->count();
         $num['aunt']=Db::name( 'aunt')->count();
+        $db=Db::name( 'count')->field('num')->select();
+
+
+        $this -> assign('count',$db);
         $this -> assign('num',$num);
         return $this -> fetch('content');
     }
