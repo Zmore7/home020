@@ -1,0 +1,1561 @@
+(function(){
+	var djtoken="djfrttok", djuid="djfrtuid", djexpiry="djfrtexp", djextoken="djfrtextoken", uid58com="uid", phone58com="phone", needSync3="djfrtsync3",
+	djsource="djfrtthsource", djappid="djfrtthappid", djthirdid="djfrtthirdid",djSyncFlag="djfrtsyncflag",protocol=window.location.protocol,isdeviceready=false,
+	showloginwhenReady=false,showloginwhenReady_jumpsuccess=null,showloginwhenReady_jumpcancel=null,client="H5";
+	
+	//APP端插件，只能在APP端使用
+	var userAgent = navigator.userAgent;
+	var cookiestr = document.cookie ;
+	if(userAgent.indexOf('cdvsupport') >= 0||cookiestr.indexOf('cdvsupport') >= 0){//到家APP
+		//标识客户端为到家APP，而非H5端
+		client = "APP";
+		document.write("<script type='text/javascript' src='nacodovafile/js/cdplugins.js#nacodovafile'><\/script>");
+		document.write("<script type='text/javascript' src='nacodovafile/js/cordova.js#nacodovafile'><\/script>");
+		document.addEventListener("deviceready", djfrtonDeviceReady, false);
+		function djfrtonDeviceReady(data) {
+			 isdeviceready = true;
+			 if(showloginwhenReady){
+	            CD58UtilsPlugin.util("loginfunction",{},showloginwhenReady_jumpsuccess,showloginwhenReady_jumpcancel);
+			 }
+		}
+	}else if(/ganji_\d*/.test(window.navigator.userAgent)){//赶集
+		//当前js在赶集app环境下  ganji
+		//todo 加入赶集逐级返回逻辑js
+		document.write("<script type='text/javascript' src='//static.daojia.com/assets/common/js/gj/base.js'><\/script>");
+		var client = "GJAPP";
+		var gjAppSource = 100;
+		var gjAppId = null;// ganji
+		var methods = {};// ganji
+		var callbacks = {};//存储回调函数 ganji
+		var idCounter = 1;//给需要app回调的方法添加名称，用于添加映射关系 ganji
+		var isSupportNativeAPI = true;//判断当前环境是否支持 GJNativeAPI ganji
+		var gjAppId = "58ganjinativeappid";//赶集的appId默认值
+		var hasGJWithoutDJ = false;//在初始化时，有赶集用户信息，但绑定未成功，没有到家用户信息
+		var JSON_RPC_ERROR = {
+			    PARSE_ERROR: {
+			        code: -32700,
+			        message: 'Parse error'
+			    },
+			    INVALID_REQUEST: {
+			        code: -32600,
+			        message: 'Invalid Request'
+			    },
+			    METHOD_NOT_FOUND: {
+			        code: -32601,
+			        message: 'Method not found'
+			    },
+			    INVALID_PARAMS: {
+			        code: -32602,
+			        message: 'Invalid params'
+			    },
+			    INTERNAL_ERROR: {
+			        code: -32603,
+			        message: 'Internal error'
+			    }
+			};
+		window.GJNativeAPI = window.GJNativeAPI || {};// ganji
+		
+		if (!window.GJNativeAPI.send) {
+		    (function () {
+		        var buffer = [];
+		        if (/ganji_\d*/.test(window.navigator.userAgent)) {
+		            var timer = setTimeout(function () {
+		                buffer.forEach(handleInternalError);
+		                window.GJNativeAPI.send = handleInternalError;
+		            }, 3000);
+
+		            document.addEventListener('WebViewJavascriptBridgeReady', function () {
+		                clearTimeout(timer);
+		                setTimeout(function () {
+		                    buffer.forEach(window.GJNativeAPI.send);
+		                }, 10);
+		            }, false);
+
+		            window.GJNativeAPI.send = function (message) {
+		                buffer.push(message);
+		            };
+		            return;
+		        }
+		        isSupportNativeAPI = false;
+		        window.GJNativeAPI.send = handleInternalError;
+		    })();
+		}
+		/**
+		 * JS发送信息给nativeJS
+		 */
+		function send (message) {
+		    console.log('javascript -> native: ' + JSON.stringify(message));
+		    window.GJNativeAPI.send(JSON.stringify(message));
+		    if(window.GJNativeAPI.onMessage){
+		    	console.log("onMessage 已经注册成功了");
+		    }else{
+		    	console.log("onMessage 尚未注册成功");
+		    }
+		    console.log("给赶集nativeJS发送消息完毕");
+		}
+		/**
+		 * 访问赶集nativeJS的回调函数
+		 */
+		window.GJNativeAPI.onMessage = function (message) {
+		    console.log('native -> javascript: ' + message);
+		    try {
+		        message = JSON.parse(message);
+		    } catch (ex) {
+		        return send({
+		            jsonrpc: '2.0',
+		            error: JSON_RPC_ERROR.PARSE_ERROR,
+		            id: null
+		        });
+		    }
+		    if (message.method) {
+		        executeMethod(message);
+		    } else if (message.id) {
+		        handleCallback(message);
+		    }
+		};
+		/**
+		 * 执行访问赶集方法
+		 */
+		function executeMethod (message) {
+		    var fn = methods[message.method];
+
+		    if (!fn) {
+		        send({
+		            jsonrpc: '2.0',
+		            error: JSON_RPC_ERROR.METHOD_NOT_FOUND,
+		            id: message.id || null
+		        });
+		        return;
+		    }
+		    setTimeout(function () {
+		        try {
+		            fn(message.params, function (err, result) {
+		                if (!message.id) {
+		                    return;
+		                }
+
+		                if (err) {
+		                    send({
+		                        jsonrpc: '2.0',
+		                        error: {
+		                            code: err.code,
+		                            message: err.message
+		                        },
+		                        id: message.id
+		                    });
+		                } else {
+		                    send({
+		                        jsonrpc: '2.0',
+		                        result: result,
+		                        id: message.id
+		                    });
+		                }
+		            });
+		        } catch (ex) {
+		            send({
+		                jsonrpc: '2.0',
+		                error: {
+		                    code: ex.code || -32000,
+		                    message: ex.message
+		                },
+		                id: message.id
+		            });
+		        }
+		    }, 0);
+		}
+		/**
+		 * 处理回调函数
+		 */
+		function handleCallback (message) {
+		    var callback = callbacks[message.id];
+		    callbacks[message.id] = null;
+
+		    if (!callback) {
+		        return;
+		    }
+		    setTimeout(function () {
+		        callback(message.error || null, message.result);
+		    }, 0);
+		}
+		/**
+		 * 回调函数返回结果有误，需要发送信息给nativeJS
+		 */
+		function handleInternalError(message) {
+		    try {
+		        message = JSON.parse(message);
+		    } catch (ex) {
+		        return;
+		    }
+		    if (message.id) {
+		        handleCallback({
+		            jsonrpc: '2.0',
+		            error: JSON_RPC_ERROR.INTERNAL_ERROR,
+		            id: message.id
+		        });
+		    }
+		}
+		/**
+		 * 封装的对象
+		 */
+		function ganjiAPP(){
+		}
+		ganjiAPP.prototype = {
+				invoke: function (method, params, callback) {
+			        var message = {
+			            jsonrpc: '2.0',
+			            method: method,
+			            params: params
+			        };
+			        var id;
+
+			        if (callback) {
+			            id = 'jsonp_' + idCounter;
+			            idCounter++;
+
+			            callbacks[id] = callback;
+			            message.id = id;
+			        }
+			        send(message);
+			    }
+		}
+
+		GanJi_NativeJS = new ganjiAPP();
+
+		GanJi_NativeJS.goBack = function(tagUrl){
+			GanJi_NativeJS.invoke(
+		        'webViewCallback',
+		        {
+		            url:tagUrl
+		        },
+		        function (err, data) {
+		        	if(data){
+		                if(typeof tagUrl == 'function'){
+		                	console.info("the data of goBack is "+data);
+		                	var result={};
+							result.code="0";
+							result.desc="success";
+							tagUrl.call(window, result);
+		                }
+		            }
+		        	if(err){
+		        		console.info("the err of goBack is "+err);
+		        	}
+		        }
+		    );                    
+		};
+		
+		/**
+		 * 获取赶集用户信息
+		 * 回调的方式
+		 */
+		GanJi_NativeJS.getUserInfo = function(successCallback,cancelCallback){
+			GanJi_NativeJS.invoke(
+			        'getUserInfo',
+			        {
+			           datatype: 2
+			        },
+			        function (err, data) {
+			            //需要先判断err，同时要判断data不为空。因为那边可能只返回一个data的空对象
+			        	console.log("获取赶集用户信息后的结果--->>>"+JSON.stringify(err)+"-----"+JSON.stringify(data));
+			            if(!err && data && data.user_sscode){   
+			                if(typeof successCallback == 'function'){
+			                	console.log("获取赶集用户信息成功返回信息,调用【getGJUserInfoSucc】");
+			                    successCallback(data);
+			                }            
+			            }else{
+			            	if(typeof cancelCallback == 'function'){
+			            		console.log("获取赶集用户信息成功返回信息,调用【getGJUserInfoFail】");
+			            		cancelCallback();
+			                }
+			            }    
+			        }
+			    );       
+		};
+		/**
+		 * 【api】begin ganji
+		 */
+		//获取赶集用户信息成功的回调,
+		function getGJUserInfoSucc(data){
+			//由于传输过程中#作为网页位置标记符，会将后面的内容干掉，所以这里替换
+			var tempdata = JSON.stringify(data);
+			tempdata = tempdata.replace(/#/g,",");
+			console.log(JSON.stringify(data)+":成功:"+tempdata);
+			var jsonRes = DjUser.getUserInfo();
+			if(jsonRes != null){
+				//有到家用户信息,进行比对
+				console.log("有到家用户信息【进行数据比对】"+JSON.stringify(jsonRes));
+//				var vsource = getCookieDJ(djsource);
+//				var vappId = getCookieDJ(djappid);
+				var vthirdId = getCookieDJ(djthirdid);
+				var obj = eval("("+tempdata+")");
+				console.log("user_sscode is "+obj["user_sscode"]);
+				if(obj["user_sscode"] != vthirdId){
+					console.log("现在的赶集用户信息与cookie中的不一样");
+					cleanCookie();
+					cleanCookie58();
+					var callbackName = "djHasPhoneThirdCallback_"+(new Date()).getTime();
+					window[callbackName]=function(returnCode,returnDesc,djfrtUid,djfrtexp,djfrttok,thirdId){
+						if(returnCode == 0){
+							console.log("user_sscode is "+obj["user_sscode"]);
+							//写到家用户信息cookie && 赶集用户信息cookie至当前域下
+							console.log("gjLoginSuccess4callback【开始】写到家用户信息cookie && 赶集用户信息cookie至当前域下<>"+djfrttok+"<>"+djfrtUid+"<>"+djfrtexp);
+							setCookie(djfrttok,djfrtUid,djfrtexp,false);
+							setThirdCookie(gjAppSource,gjAppId,obj["user_sscode"],false);
+							console.log("gjLoginSuccess4callback【结束】写到家用户信息cookie && 赶集用户信息cookie至当前域下<>"+gjAppSource+"<>"+gjAppId+"<>"+thirdId);
+						}
+						setTimeout(function(){window[callbackName]=undefined;},1000);
+						console.log("successFun has down");
+						isdeviceready=true;
+						if(showloginwhenReady){
+							showloginwhenReady_jumpsuccess.call(window,DjUser.getUserInfo());
+						}
+					};
+					/**
+					 * 发起JSONP异步调用
+					 * 访问后台服务，验证该信息是否有手机号
+					 */
+					var JSONP=document.createElement("script");  
+					JSONP.type="text/javascript";  
+					JSONP.src=strURLPrefix + "/thirdoauth/third/register1?callback="+callbackName+"&userInfo="+tempdata+"&appId="+gjAppId+"&source="+gjAppSource;
+					document.getElementsByTagName("head")[0].appendChild(JSONP);
+					return ;
+				}else{
+					console.log("现在的赶集用户信息与cookie中的一样");
+					isdeviceready=true;
+					if(showloginwhenReady){
+						showloginwhenReady_jumpsuccess.call(window,DjUser.getUserInfo());
+					}
+					return ;
+				}
+			}else{
+				//没有到家用户信息,走注册到家并绑定三方流程
+				console.log("没有到家用户信息");
+				var callbackName = "djHasPhoneThirdCallback_"+(new Date()).getTime();
+				window[callbackName]=function(returnCode,returnDesc,djfrtUid,djfrtexp,djfrttok,thirdId){
+					console.log(returnCode+":"+returnDesc+":"+djfrtUid+":"+djfrtexp+":"+djfrttok+":"+thirdId);
+					if(returnCode == 0){
+						var obj = eval("("+tempdata+")");
+						console.log("user_sscode is "+obj["user_sscode"]);
+						//写到家用户信息cookie && 赶集用户信息cookie至当前域下
+						console.log("gjLoginSuccess4callback【开始】写到家用户信息cookie && 赶集用户信息cookie至当前域下<>"+djfrttok+"<>"+djfrtUid+"<>"+djfrtexp);
+						setCookie(djfrttok,djfrtUid,djfrtexp,false);
+						setThirdCookie(gjAppSource,gjAppId,obj["user_sscode"],false);
+						console.log("gjLoginSuccess4callback【结束】写到家用户信息cookie && 赶集用户信息cookie至当前域下<>"+gjAppSource+"<>"+gjAppId+"<>"+thirdId);
+					}
+					setTimeout(function(){window[callbackName]=undefined;},1000);
+					hasGJWithoutDJ = true;
+					console.log("successFun has down");
+					isdeviceready=true;
+					if(showloginwhenReady){
+						showloginwhenReady_jumpsuccess.call(window,DjUser.getUserInfo());
+					}
+				};
+				/**
+				 * 发起JSONP异步调用
+				 * 访问后台服务，验证该信息是否有手机号
+				 */
+				var JSONP=document.createElement("script");  
+				JSONP.type="text/javascript";  
+				JSONP.src=strURLPrefix + "/thirdoauth/third/register1?callback="+callbackName+"&userInfo="+tempdata+"&appId="+gjAppId+"&source="+gjAppSource;
+				document.getElementsByTagName("head")[0].appendChild(JSONP);
+				return ;
+			}
+		};
+
+		//获取失败的回调
+		function getGJUserInfoFail(data){
+			//获取赶集用户信息失败，清空到家用户信息&&赶集用户信息即可
+			console.log("*******清空cookies");
+			cleanCookie();
+			cleanCookie58();
+			isdeviceready=true;
+			if(showloginwhenReady){
+				showloginwhenReady_jumpsuccess.call(window,null);
+			}
+			return;
+		}
+		
+		/**
+		 * 调起赶集登录页
+		 */
+		GanJi_NativeJS.login = function(successCallback,cancelCallback){
+			if(hasGJWithoutDJ == true){
+				//需要走校验手机号
+				GanJi_NativeJS.invoke(
+						'login',
+						{
+							logintype: 3,
+							datatype: 2
+						},
+						function (err, data) {
+							console.log("【GanJi_NativeJS.login 校验手机号】成功返回结果 "+err+"--------"+data);
+							if(!err && data && data.user_sscode){
+								console.log("【GanJi_NativeJS.login 校验手机号】成功返回结果");
+								gjLoginSuccess(data,successCallback);
+							}else{
+								//todo 逐级返回优化
+								if(typeof cancelCallback == 'function'){
+									var result={};
+									result.code="-1";
+									result.desc="fail";
+									cancelCallback.call(window,result);
+									console.log("登录失败,走'goBack'");
+									//GanJi_NativeJS.goBack();
+								}else{
+									console.log("cancelCallback is not a function");
+								}
+							}
+						}
+				);
+			}else{
+				GanJi_NativeJS.invoke(
+						'login',
+						{
+							logintype: 2,
+							datatype: 2
+						},
+						function (err, data) {
+							console.log("【GanJi_NativeJS.login】成功返回结果 "+err+"--------"+data);
+							if(!err && data && data.user_sscode){
+								console.log("【GanJi_NativeJS.login】成功返回结果");
+								gjLoginSuccess(data,successCallback);
+							}else{
+								//todo 逐级返回优化
+								if(typeof cancelCallback == 'function'){
+									var result={};
+									result.code="-1";
+									result.desc="fail";
+									cancelCallback.call(window,result);
+									console.log("登录失败,走'goBack'");
+									//GanJi_NativeJS.goBack();
+								}else{
+									console.log("cancelCallback is not a function");
+								}
+							}
+						}
+				);
+			}
+		}
+	
+		/**
+		 * 赶集登录成功
+		 * successFun 有可能是基于回调的callback函数，也有可能是redirect URL
+		 */
+		function gjLoginSuccess(data,successFun){
+			//由于传输过程中#作为网页位置标记符，会将后面的内容干掉，所以这里替换
+			var tempdata = JSON.stringify(data);
+			tempdata = tempdata.replace(/#/g,",");
+			console.log(JSON.stringify(data)+":成功:"+tempdata+"****"+successFun);
+			var callbackName = "djHasPhoneThirdCallback_"+(new Date()).getTime();
+			
+			window[callbackName]=function(returnCode,returnDesc,djfrtUid,djfrtexp,djfrttok,thirdId){
+				console.log(returnCode+":"+returnDesc+":"+djfrtUid+":"+djfrtexp+":"+djfrttok+":"+thirdId);
+				if(returnCode == 0){
+					var obj = eval("("+tempdata+")");
+					console.log("user_sscode is "+obj["user_sscode"]);
+					//写到家用户信息cookie && 赶集用户信息cookie至当前域下
+					console.log("gjLoginSuccess4callback【开始】写到家用户信息cookie && 赶集用户信息cookie至当前域下<>"+djfrttok+"<>"+djfrtUid+"<>"+djfrtexp);
+					setCookie(djfrttok,djfrtUid,djfrtexp,false);
+					setThirdCookie(gjAppSource,gjAppId,obj["user_sscode"],false);
+					console.log("gjLoginSuccess4callback【结束】写到家用户信息cookie && 赶集用户信息cookie至当前域下<>"+gjAppSource+"<>"+gjAppId+"<>"+obj["user_sscode"]);
+				}
+				setTimeout(function(){window[callbackName]=undefined;},1000);
+				if(typeof successFun == 'function'){
+					var result={};
+					result.code="0";
+					result.desc="success";
+					successFun.call(window, result);
+				}else{
+					successFun = decodeURIComponent(successFun);
+					successFun = decodeURIComponent(successFun);
+					window.location = successFun;
+				}
+				console.log("successFun has down");
+			};
+			/**
+			 * 发起JSONP异步调用
+			 * 访问后台服务，验证该信息是否有手机号
+			 */
+			var JSONP=document.createElement("script");  
+			JSONP.type="text/javascript";  
+			JSONP.src=strURLPrefix + "/thirdoauth/third/register1?callback="+callbackName+"&userInfo="+tempdata+"&appId="+gjAppId+"&source="+gjAppSource;
+			document.getElementsByTagName("head")[0].appendChild(JSONP);
+		};
+		
+		/**
+		 * 获取赶集经纬度信息
+		 */
+		GanJi_NativeJS.getLocation = function(callBack){
+			GanJi_NativeJS.invoke(
+				        "getlocation",
+				        {},
+				        function(err,data){
+				            if(err){
+				                return;
+				            }else{
+				            	console.log("获取到的经纬度信息是 "+JSON.stringify(data));
+				            	callBack(data);
+				            }
+				        }
+				    )
+		};
+		
+		  if (!window.GJHybrid) {
+			  console.info("初始化 GJHybrid");
+			    window.GJHybrid = {}
+		  }
+
+		  window.GJHybrid = window.GJHybrid || {};
+
+		  window.GJHybrid.registerHandler = window.GJHybrid.registerHandler || function (name, fn) {
+		      methods[name] = fn;
+		  };
+
+		  window.GJHybrid.invoke = window.GJHybrid.invoke || function (method, params, callback) {
+		      var message = {
+		        jsonrpc: '2.0',
+		        method: method,
+		        params: params
+		      };
+		      var id;
+	
+		      if (callback) {
+		        id = 'jsonp_' + idCounter;
+		        idCounter++;
+	
+		        callbacks[id] = callback;
+		        message.id = id;
+		      }
+	
+		      send(message);
+		  };
+
+		  window.GJHybrid.isSupport = window.GJHybrid.isSupport || function () {
+		      return isSupportNativeAPI;
+		    };
+
+		  Object.keys(JSON_RPC_ERROR).forEach(function (key) {
+		    window.GJHybrid[key] = JSON_RPC_ERROR[key];
+		  });
+
+		  // 客户端返回上一个native页面
+		  window.GJHybrid.back = window.GJHybrid.back || function () {
+		      window.GJHybrid.invoke('back');
+		  }
+		
+		document.addEventListener("WebViewJavascriptBridgeReady", function(){
+			isdeviceready = true;
+		}, false);
+	}else if(typeof contact!="undefined" && typeof contact.getLoginMaskUid!="undefined"){//乐视
+		console.info("client===LEYP");
+		client = "LEYP";
+		var LeYPSource=20;
+		var leYPAppId="LeYellowPage";
+		LeYP_NativeJS = {};
+		//定义调起登录后的跳转地址
+		LeYP_NativeJS.loginSucRedir=null;
+		//定义调起登录失败后，需要执行的回调函数
+		LeYP_NativeJS.loginFailFunc=null;
+		
+		/**
+		 * 乐视登录成功后的回调函数
+		 */
+		getLeUidCallback = function(result,LeYPuid){
+			if(result=="MASKUIDSUCCESS" && LeYPuid!=undefined){
+				//首先将乐视的uid信息，写入到当前域名中
+				setThirdCookie(LeYPSource,leYPAppId,LeYPuid,true);
+				//首先根据三方信息去后端同步到家的用户信息，如果没有，则需要调起到家的登录，以便绑定手机号
+				var callbackName = "communalCheckCallback_"+(new Date()).getTime();
+				window[callbackName]=function(returnCode, djfrttok, djfrtUid, djfrtexp){
+					console.log(returnCode+":"+djfrtUid+":"+djfrtexp+":"+djfrttok);
+					if(returnCode == "0"){
+						setCookie(djfrttok,djfrtUid,djfrtexp,false);
+						window.location = LeYP_NativeJS.loginSucRedir;
+					}else if(returnCode == "-2"){//没有绑定到家用户信息，需要调起到家的登录
+						window.location = strURLPrefix+"/prelogin?returnUrl="+LeYP_NativeJS.loginSucRedir;
+					}else{
+						LeYP_NativeJS.loginFailFunc.call(window);
+					}
+					setTimeout(function(){window[callbackName]=undefined;},1000);
+				};
+				
+				var JSONP=document.createElement("script");  
+				JSONP.type="text/javascript";  
+				JSONP.src=strURLPrefix + "/thirdoauth/common/check?callback="+callbackName;
+				document.getElementsByTagName("head")[0].appendChild(JSONP);
+			}else{
+				LeYP_NativeJS.loginFailFunc.call(window, "乐视登录错误！");
+			}
+		}
+		
+		/**
+		 * 调起乐视登录
+		 */
+		LeYP_NativeJS.login = function(redirect, failFunc){
+			//首先判断是否已经存在乐视的用户信息，如果已经存在，直接调起到家登录，否则调起乐视本地登录，登录成功后，再调起到家登录
+			var strSource = getCookieDJ(djsource);
+			var strAppId = getCookieDJ(djappid);
+			var strThirdId = getCookieDJ(djthirdid);
+			if(isValid(strSource) && isValid(strAppId) && isValid(strThirdId)){
+				window.location = strURLPrefix+"/prelogin?returnUrl="+redirect;
+			}else{
+				console.info("invoke leYG login method");
+				LeYP_NativeJS.loginSucRedir = redirect;
+				LeYP_NativeJS.loginFailFunc=failFunc;
+				window.contact.getLoginMaskUid();
+			}
+		} 
+	}
+	
+	// 是否支持CORS请求
+	var createCORSRequset = function(method, url) {
+		var xhr = new XMLHttpRequest();
+		if ("withCredentials" in xhr) {
+			// Check if the XMLHttpRequest object has a "withCredentials" property.
+			// "withCredentials" only exists on XMLHTTPRequest2 objects.
+			xhr.open(method, url, true);
+		} else if (typeof XDomainRequest != "undefined") {
+			// Otherwise, check if XDomainRequest.
+			// XDomainRequest only exists in IE, and is IE's way of making CORS requests.
+			xhr = new XDomainRequest();
+			xhr.open(method, url);
+		} else {
+			// Otherwise, CORS is not supported by the browser.
+			xhr = null;
+		}
+		return xhr;
+	}
+	
+	// 获取cookie信息
+	var getCookieDJ = function(name){
+		if(document.cookie == null || document.cookie == "" || typeof document.cookie == "undefined"){
+			return null;
+		}else{
+			var arrCookies = document.cookie.split(";");
+			for(var i=0; i<arrCookies.length; i++){
+				var strCookie = arrCookies[i];
+				var strCookie = strCookie.trim();
+				var arrCookieName = strCookie.split("=");
+				if(arrCookieName[0] == name){
+					return unescape(arrCookieName[1]);
+				}
+			}
+		}
+		return null;
+	}
+	
+	//获取浏览器版本信息
+	var getBrowserInfo = function(){
+	    var Sys = {};
+	    var ua = navigator.userAgent.toLowerCase();
+	    var re =/(msie|firefox|chrome|opera|applewebkit).*?([\d.]+)/;
+	    var m = ua.match(re);
+	    Sys.browser = m[1];
+	    Sys.ver = m[2];
+	    return Sys;
+	}
+	
+	//获取当前URL所在的域后缀
+	var getDomainDJ = function(){
+		var strHost = document.domain;
+		var arryHost = strHost.split(".");
+		var strdomain = "."+arryHost[arryHost.length-2]+"."+arryHost[arryHost.length-1];
+		return strdomain;
+	}
+	
+	//校验参数合法性
+	var isValid = function(param){
+		if(param!=null && param!=undefined && param!=""){
+			return true;
+		}
+		return false;
+	}
+	
+	//加载完成后的初始化函数
+	var loadCallback=function(token, uid, expiry){
+		//标识已经初始化完毕
+		isdeviceready=true;
+		//检查是否有代码在初始化的时候，就需要获取用户信息
+		if(showloginwhenReady){
+			if(!isValid(token) || !isValid(uid) || !isValid(expiry)){
+				showloginwhenReady_jumpsuccess.call(window,null);
+			}else{
+				var jsonUserInfo = {};
+				jsonUserInfo.djfrttok = token;
+				//查询出明文信息
+				if(isValid(uid) && uid.indexOf("_")>0){
+					var strPlainUid = uid.substring(uid.indexOf("_")+1);
+					uid = uid.substring(0, uid.indexOf("_"));
+					jsonUserInfo.djfrtplainuid = strPlainUid;
+				}
+				jsonUserInfo.djfrtuid = uid;
+				jsonUserInfo.djfrtexpire = expiry;
+				showloginwhenReady_jumpsuccess.call(window,jsonUserInfo);
+			}
+		}
+	}
+	
+	//判断是否在微信站点的主域
+	var isWebchatDomain = function(){
+		var strCurDomain = document.domain;
+		if(strCurDomain == "tjztbox8.djtest.cn" || strCurDomain == "tjztbox71.djtest.cn" || strCurDomain == "tjztbox72.djtest.cn" || strCurDomain == "tjztbox73.djtest.cn" || 
+				strCurDomain == "tjztbox74.djtest.cn" || strCurDomain == "tjztbox75.djtest.cn" || strCurDomain == "tjztbox76.djtest.cn" || strCurDomain == "tjztbox77.djtest.cn" || 
+				strCurDomain == "tjztbox189.djtest.cn" || strCurDomain == "tjztbox190.djtest.cn" || strCurDomain == "t.jzt.58.com"){
+			return true;
+		}
+		return false;
+	}
+	
+	//判断是否为与passport的二级域名相同
+	var isSameDomain = function(){
+		var strCurDomain = getDomainDJ();
+		if(strCurDomain==".djcorp.cn" || strCurDomain==".daojia.com" || (protocol=="https:" && strCurDomain==".djtest.cn")){
+			return true;
+		}
+		return false;
+	}
+	
+	//判断是否为测试环境
+	var isTestEnv = function(){
+		var strCurDomain = getDomainDJ();
+		if(strCurDomain==".djcorp.cn" || strCurDomain==".djtest.cn"){
+			return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * 比对refer与当前的域名是否在同一个域名下面(线上只比对两级域名)
+	 * 相同域名：true
+	 * 不相同域名：false
+	 */
+	var compareRefer = function(referURL){
+		if(referURL == undefined || referURL==null || referURL.trim()==""){
+			return false;
+		}
+		//首先判断是否在相同的http或者https下面
+		if(referURL.indexOf(window.location.protocol)!=0){
+			return true;
+		}
+		//判断域名是否相同
+		var intIndex = referURL.indexOf("//");
+		var referDomain =  referURL.substring(intIndex+2);
+		intIndex = referDomain.indexOf("/");
+		if(intIndex!=-1){
+			referDomain = referDomain.substring(0, intIndex);
+		}
+		var arryHost = referDomain.split(".");
+		referDomain = "."+arryHost[arryHost.length-2]+"."+arryHost[arryHost.length-1];
+		if(referDomain!=getDomainDJ()){
+			return true;
+		}
+		return false;
+	}
+	
+	var strURLPrefix = "http://user.daojia.com";
+	if(typeof djPassportUrl !='undefined'){
+		strURLPrefix = djPassportUrl;
+	}
+	//TODO 兼容方案，从58.com域中同步数据
+	//var strURLPrefix58 = "http://t.jzt.58.com/passport";
+	//TODO 兼容方案，跨域设置cookie
+	//var strURLCross58 = "http://t.jzt.58.com/passcross";
+	if(protocol=="https:"){
+		//将请求的地址转换为https协议格式
+		if(strURLPrefix.indexOf("https:")!=0){
+			strURLPrefix = "https"+strURLPrefix.substring(4);
+		}
+	}
+	// else if(protocol=="http:"){
+	// 	if(typeof com58PassportUrl !='undefined'){
+	// 		//TODO 兼容方案，前期沟通失误，造成此兼容方案
+	// 		var intIndex = com58PassportUrl.lastIndexOf("passport");
+	// 		if(intIndex == -1){
+	// 			strURLPrefix58 = com58PassportUrl+"/passport";
+	// 			strURLCross58 = com58PassportUrl+"/passcross";
+	// 		}else{
+	// 			strURLPrefix58 = com58PassportUrl;
+	// 			strURLCross58 = com58PassportUrl.substring(0, intIndex)+"passcross";
+	// 		}
+	// 	}
+	// }
+	
+	if(getDomainDJ()==".djtest.cn"){
+		// if(protocol=="http:"){
+		// 	strURLPrefix = "http://passport-betaa.djtest.cn";
+		// 	strURLPrefix58 = "http://tjztbox76.djtest.cn/passport";
+		// 	strURLCross58 = "http://tjztbox76.djtest.cn/passcross";
+		// }else
+		// if(protocol=="https:"){
+			if(typeof djPassportUrl !='undefined'){
+				strURLPrefix = djPassportUrl;
+			}else if(protocol=="https:") {
+				strURLPrefix = "https://user.daojia.com";//保证沙箱环境可以使用
+			}
+		// }
+	}
+	
+	/**
+	 * 设置用户信息到当前域，默认为会话级别的过期时间
+	 * @param token  凭证
+	 * @param encUid 加密的uid信息
+	 * @param expiry 过期时间
+	 * @param byExpiry 是否需要按照过期时间设置cookie的过期时间
+	 */
+	var setCookie = function(token,encUid,expiry,byExpiry){
+		var strdomain = getDomainDJ();
+		//按照实际的过期时间进行设置
+		if(byExpiry!=undefined && byExpiry==true){
+			var expiryDate = new Date();
+			expiryDate.setTime(expiryDate.getTime+expiry*1000);
+			document.cookie=djtoken+"="+token+";domain="+strdomain+";path=/"+";expires="+expiryDate.toGMTString();
+			document.cookie=djuid+"="+encUid+";domain="+strdomain+";path=/"+";expires="+expiryDate.toGMTString();
+			document.cookie=djexpiry+"="+expiry+";domain="+strdomain+";path=/"+";expires="+expiryDate.toGMTString();
+		}else{//按照会话作为过期时间进行设置
+			document.cookie=djtoken+"="+token+";domain="+strdomain+";path=/";
+			document.cookie=djuid+"="+encUid+";domain="+strdomain+";path=/";
+			document.cookie=djexpiry+"="+expiry+";domain="+strdomain+";path=/";
+		}
+	}
+	
+	/**
+	 * 设置用户信息到当前域，默认为会话级别的过期时间
+	 * @param source   渠道来源
+	 * @param appid    渠道具体的应用id
+	 * @param thirdId  三方用户id信息
+	 * @param byExpiry 是否需要按照过期时间设置cookie的过期时间
+	 */
+	var setThirdCookie = function(source,appId,thirdId,byExpiry){
+		console.log("setThirdCookie-->>source:"+source+"---appId:"+appId+"---thirdId:"+thirdId+"---byExpiry:"+byExpiry);
+		var strdomain = getDomainDJ();
+		//按照实际的过期时间进行设置
+		if(byExpiry!=undefined && byExpiry==true){
+			console.log("【setThirdCookie】设置有过期时间的cookie begin");
+			var expiryDate = new Date();
+			expiryDate.setTime(expiryDate.getTime+2592000*1000);
+			console.log("【setThirdCookie】设置有过期时间的cookie doing");
+			document.cookie=djsource+"="+source+";domain="+strdomain+";path=/"+";expires="+expiryDate.toGMTString();
+			document.cookie=djappid+"="+appId+";domain="+strdomain+";path=/"+";expires="+expiryDate.toGMTString();
+			document.cookie=djthirdid+"="+thirdId+";domain="+strdomain+";path=/"+";expires="+expiryDate.toGMTString();
+			console.log("【setThirdCookie】设置有过期时间的cookie end");
+		}else{//按照会话作为过期时间进行设置
+			console.log("【setThirdCookie】设置会话级别的cookie begin");
+			document.cookie=djsource+"="+source+";domain="+strdomain+";path=/";
+			document.cookie=djappid+"="+appId+";domain="+strdomain+";path=/";
+			document.cookie=djthirdid+"="+thirdId+";domain="+strdomain+";path=/";
+			console.log("【setThirdCookie】设置会话级别的cookie end");
+		}
+	}
+	
+	/**
+	 * 设置兼容的58.com域名cookie信息到
+	 */
+	var setCookie58 = function(uid,phone){
+		//兼容测试环境，如果为测试环境，则将uid、phone信息设置到二级域名下
+		if(isTestEnv()){
+			var strDomain =  getDomainDJ();
+			if(isValid(uid)){
+				document.cookie=uid58com+"="+uid+";domain="+strDomain+";path=/";
+			}
+			if(isValid(phone)){
+				document.cookie=phone58com+"="+phone+";domain="+strDomain+";path=/";
+			}
+		}else{
+			if(isValid(uid)){
+				document.cookie=uid58com+"="+uid+";domain="+document.domain+";path=/";
+			}
+			if(isValid(phone)){
+				document.cookie=phone58com+"="+phone+";domain="+document.domain+";path=/";
+			}
+		}
+	}
+	
+	/**
+	 * 清除当前域名下的用户信息
+	 */
+	var cleanCookie = function(){
+		var dateNow = new Date();
+		var strdomain = getDomainDJ();
+		dateNow.setDate(dateNow.getDate()-1);
+		document.cookie=djtoken+"=;domain="+strdomain+";path=/;expires="+dateNow.toGMTString();
+		document.cookie=djuid+"=;domain="+strdomain+";path=/;expires="+dateNow.toGMTString();
+		document.cookie=djexpiry+"=;domain="+strdomain+";path=/;expires="+dateNow.toGMTString();
+		//清空当前域下的三方信息，微信端公众号会在微信号切换的时候，清除所有的cookie信息
+		if(client!="H5" || (client==="H5" && !isWebchatDomain())){
+			document.cookie=djsource+"=;domain="+strdomain+";path=/"+";expires="+dateNow.toGMTString();
+			document.cookie=djappid+"=;domain="+strdomain+";path=/"+";expires="+dateNow.toGMTString();
+			document.cookie=djthirdid+"=;domain="+strdomain+";path=/"+";expires="+dateNow.toGMTString();
+		}
+		console.log("清空cookies完毕");
+	}
+	
+	/**
+	 * 清除兼容的.58.com下的用户信息
+	 */
+	var cleanCookie58 = function(){
+		var dateNow = new Date();
+		var strdomain = getDomainDJ();
+		dateNow.setDate(dateNow.getDate()-1);
+		//TODO 兼容方案，将最低一级绑定的cookie也清除掉
+		document.cookie=uid58com+"=;domain="+strdomain+";path=/;expires="+dateNow.toGMTString();
+		document.cookie=phone58com+"=;domain="+strdomain+";path=/;expires="+dateNow.toGMTString();
+		//TODO 兼容方案，将最低一级绑定的cookie也清除掉
+		document.cookie=uid58com+"=;domain="+document.domain+";path=/;expires="+dateNow.toGMTString();
+		document.cookie=phone58com+"=;domain="+document.domain+";path=/;expires="+dateNow.toGMTString();
+		//TODO 兼容方案，清除cookie，没有设定域名的
+		document.cookie=uid58com+"=;path=/;expires="+dateNow.toGMTString();
+		document.cookie=phone58com+"=;path=/;expires="+dateNow.toGMTString();
+	}
+	
+	/**
+	 * 创建当前域已同步的cookie标识
+	 */
+	var createSynFlag = function(){
+		document.cookie=djSyncFlag+"=1;domain="+getDomainDJ()+";path=/";
+	}
+	
+	/**
+	 * 检测在此次会话过程中，是否已经同步过用户的信息
+	 */
+	var hasSyn = function(){
+		var hasSync = getCookieDJ(djSyncFlag);
+		if(hasSync!=undefined && hasSync!=null && hasSync=="1"){
+			return true;
+		}
+		return false;
+	}
+	
+	//从主域获取用户信息
+	var syncUserInfo = function(callbackName){
+		var JSONP=document.createElement("script");  
+		JSONP.type="text/javascript";  
+		JSONP.src=strURLPrefix + "/user/setcookie?callback="+callbackName;
+		document.getElementsByTagName("head")[0].appendChild(JSONP);
+	}
+	
+ 	//主域的jsonp回调函数，此接口是全局变量函数，负责同步主域里的用户信息到当前的域名里
+	var jsonpCallback = function(syn58, token, encUid, expiry) {
+		var dateNow = new Date(); 
+		//TODO(兼容方案) 如果不存在，则再次从58.com域名再去同步一次
+		if(token==undefined || token==null || token=="0" || encUid==undefined || encUid==null || encUid=="0" || expiry==undefined || expiry==null || expiry<=0){
+			if(syn58==false){
+				loadCallback(token,encUid,expiry);
+				return;
+			}
+			var callbackName = "djinitCallback58_"+(new Date()).getTime();
+			window[callbackName]=function(token, uid, expiry){
+				jsonpCallback58.call(window, token, uid, expiry);
+				//清除不再使用的回调函数
+				setTimeout(function(){window[callbackName]=undefined;},1000);
+			};
+			syncUserInfo58(callbackName);
+		}else{
+			//如果是daoja域，则按照实际过期时间设计过期时间
+			if(isSameDomain()==true){
+				setCookie(token,encUid,expiry,true);
+			}else{
+				//其他的域，过期时间设置为当前会话
+				setCookie(token,encUid,expiry,false);
+			}
+			//加载完成直接回调初始化时的加载函数
+			loadCallback.call(window, token, encUid, expiry);
+		}
+	}
+	
+	//TODO(兼容方案) 从58.com域同步用户信息
+	var syncUserInfo58 = function(callbackName){
+		var JSONP=document.createElement("script");  
+		JSONP.type="text/javascript";  
+		// JSONP.src=strURLPrefix58 + "/user/setcookie?callback="+callbackName;
+		JSONP.src=strURLPrefix + "/user/setcookie?callback="+callbackName;
+		document.getElementsByTagName("head")[0].appendChild(JSONP);
+	}
+	
+	//TODO(兼容方案) 从58.com域同步用户数据的的jsonp回调函数，此接口是全局变量函数
+	var jsonpCallback58 = function(token,encUid,expiry) {
+		var dateNow = new Date(); 
+		//如果已经不存在了，则将cookie删除
+		if(token==undefined || token==null || token=="0" || encUid==undefined || encUid==null || encUid=="0"
+			|| expiry==undefined || expiry==null || expiry<=0){
+			cleanCookie();
+		}else{
+			//如果是daoja域，则按照实际过期时间设计过期时间
+			if(isSameDomain()==true){
+				setCookie(token,encUid,expiry,true);
+			}else{
+				//其他的域，过期时间设置为当前会话
+				setCookie(token,encUid,expiry,false);
+			}
+		}
+		//加载完成直接回调初始化时的加载函数
+		loadCallback(token, encUid, expiry);
+	}
+	
+	/**
+	 * 同步最新的用户状态
+	 * @param needSync58 是否需要从58.com域名下同步用户信息
+	 */
+	var syncLatestInfo = function(needSync58){
+		var callbackName = "syncLogoutCallback_"+(new Date()).getTime();
+		window[callbackName]=function(token, uid, expiry, uid58, phone58){
+			//主域有登录信息，将从主域同步过来的用户信息，覆盖当前域里的用户信息，保证用户信息的同步
+			if(isValid(token) && isValid(uid) && isValid(expiry)){
+				setCookie(token, uid, expiry,false);
+				if(isWebchatDomain() || isTestEnv()){
+					setCookie58(uid58, phone58);
+				}
+				loadCallback(token, uid, expiry);
+			}else if(needSync58){//TODO 再从t.jzt.58.com域同步一次信息
+				var callbackName58 = "syncLogout58Callback_"+(new Date()).getTime();
+				window[callbackName58]=function(token, uid, expiry){
+					if(!isValid(token) || !isValid(uid) || !isValid(expiry)){
+						//清除到家域下的用户信息,TODO 清除兼容的58.com域下的用户信息
+						cleanCookie();cleanCookie58();
+					}else{//同步最新的用户信息
+						setCookie(token, uid, expiry,false);
+					}
+					loadCallback(token, uid, expiry);
+					//清除不再使用的回调函数
+					setTimeout(function(){window[callbackName58]=undefined;},1000);
+				};
+				syncUserInfo58(callbackName58);
+			}else{//清除到家域下的用户信息,TODO 清除兼容的58.com域下的用户信息
+				cleanCookie();cleanCookie58();
+				loadCallback(token, uid, expiry);
+			}
+			//清除不再使用的回调函数
+			setTimeout(function(){window[callbackName]=undefined;},1000);
+		};
+		syncUserInfo(callbackName);
+	}
+	
+	/**
+	 * 将tempToken置换为真正的token，并写入到当前域中
+	 */
+	var xTempToken = function(){
+		var exTempToken = getCookieDJ(djextoken);
+		if(!isValid(exTempToken)){
+			return false;
+		}
+		//置换完成后，清除cookie等信息
+		var callbackName = "djExTokenCallback_"+(new Date()).getTime();
+		window[callbackName]=function(token, uid, expiry, uid58, phone58){
+			//清除置换真正token的临时token，无论成功与否，都要首先清除cookie
+			var dateNow = new Date(); 
+			dateNow.setDate(dateNow.getDate()-1);
+			//清除tempToken信息，带域名信息，全域名，没有域名的情况都要清理掉
+			document.cookie=djextoken+"=;domain="+getDomainDJ()+";path=/"+";expires="+dateNow.toGMTString();
+			document.cookie=djextoken+"=;domain="+document.domain+";path=/"+";expires="+dateNow.toGMTString();
+			document.cookie=djextoken+"=;path=/"+";expires="+dateNow.toGMTString();
+			//TODO(兼容方案)兼容微信原有登录方案，写入兼容的uid、phone信息
+			setCookie58(uid58, phone58);
+			//将用户信息同步到当前域中
+			jsonpCallback.call(window, false, token, uid, expiry);
+			//清除不再使用的回调函数
+			setTimeout(function(){window[callbackName]=undefined;},1000);
+		};
+		//发起JSONP一步调用
+		var JSONP=document.createElement("script");  
+		JSONP.type="text/javascript";  
+		JSONP.src=strURLPrefix + "/thirdoauth/convert?callback="+callbackName+"&"+djextoken+"="+exTempToken;
+		document.getElementsByTagName("head")[0].appendChild(JSONP);
+		return true;
+	}
+	
+	/**
+	 * 通过58的uid、phone置换真正的token信息
+	 */
+	var xWBUid = function(){
+		//58域名下的用户信息
+		var temp58comUid = getCookieDJ(uid58com);
+		//58域名下的用户手机信息
+		var temp58comPhone = getCookieDJ(phone58com);
+		if(!isValid(temp58comUid) || !isValid(temp58comPhone)){
+			return false;
+		}
+		var callbackName = "djExToken4existCallback_"+(new Date()).getTime();
+		window[callbackName]=function(token, uid, expiry, uid58, phone58){
+			//将用户信息同步到当前域中
+			jsonpCallback.call(window, false, token, uid, expiry);
+			//清除不再使用的回调函数
+			setTimeout(function(){window[callbackName]=undefined;},1000);
+		};
+		//发起JSONP一步调用
+		var JSONP=document.createElement("script");  
+		JSONP.type="text/javascript";  
+		JSONP.src=strURLPrefix + "/thirdoauth/convert?callback="+callbackName+"&"+uid58com+"="+temp58comUid+"&"+phone58com+"="+temp58comPhone;
+		document.getElementsByTagName("head")[0].appendChild(JSONP);
+		return true;
+	}
+	
+	/**
+	 * 过滤returnUrl中的信息
+	 */
+	var filterReturnUrl = function(redirect){
+		//在到家APP当中的地址如果是native地址，则不做任何处理，直接返回
+		if(redirect.indexOf("daojia")==0){
+			return redirect;
+		}
+		//相对路径的话，补充当前域的信息
+		if(redirect.indexOf("http")!=0){
+			if(redirect.indexOf("/")!=0){
+				redirect = window.location.protocol + "//" + window.location.hostname + (window.location.port ? ':' + window.location.port: '')+"/"+redirect;
+			}else{
+				redirect = window.location.protocol + "//" + window.location.hostname + (window.location.port ? ':' + window.location.port: '')+redirect;
+			}
+		}
+		var intIndex = redirect.lastIndexOf("?");
+		if(intIndex!=-1){
+			var strUrl = redirect.substring(0,intIndex+1);
+			var strPath = redirect.substr(intIndex+1);
+			var strUserPath = "";
+			var intCount = 0;
+			var arrParams = strPath.split("&");
+			for(var i=0;i<arrParams.length;i++){
+				var strParam = arrParams[i];
+				var arrParam = strParam.split("=");
+				if(arrParam[0]!=djtoken && arrParam[0]!=djuid && arrParam[0]!=djexpiry){
+					strUrl = strUrl+strParam+"&";
+				}else{								
+					strUserPath = strUserPath+strParam+"&";
+				}
+			}
+			//携带三个认证参数，则表明是正确的用户信息，过滤掉，否则不代表是正确的用户信息
+			if(intCount<3){
+				strUrl = strUrl+strUserPath;
+			}
+			//去除尾部的多余单个字符
+			redirect = strUrl.substring(0,strUrl.length-1);
+		}
+		return redirect;
+	}
+	
+	
+	/**
+	 * 定义工具类 ，用户信息工具类
+	 */
+	var DjUser = {};
+	
+	/**
+	 * 初始化方法，页面加载用户cookie信息
+	 * 首先同步三方信息到主域
+	 * 如果环境为app环境，则不需要同步用户信息，直接由客户端提取
+	 * 如果环境为H5环境，且不存在用户信息，则需要到主域同步一次用户信息
+	 * 如果环境为H5环境，且为微信入口进入，且不存在用户信息，且有置换token信息，则需要进行一次token置换，并且需要兼容微信端原有的cookie信息：uid、phone
+	 * 检查是否有用户在页面还未初始化的时候，就调用获取用户信息接口，如果调用了，则需要在同步完成后，回调相关接口
+	 */
+	DjUser.init=function(){
+		console.log("init begin");
+		//非H5页面不需要同步用户信息，不做任何处理，直接返回
+		if(client == "H5"){
+			//首先判断是否发生了域名变化，如果域名发生了变化，立即从主域同步一次用户信息
+			//console.log("document.referrer===="+document.referrer);
+			var isDomainX = compareRefer(document.referrer);
+			//用户信息是否已经存在
+			var strToken = getCookieDJ(djtoken),strUid = getCookieDJ(djuid),strExpiry = getCookieDJ(djexpiry);	
+			var isUserExist = isValid(strToken) || isValid(strUid) || isValid(strExpiry);
+			
+			//域名发生了变化，如果当前域不是主域，则需要同步一次用户信息
+			if(isDomainX){
+				//console.log("isDomainX===="+isDomainX);
+				if(protocol=="http:"){
+//					if(isSameDomain()){//到家域名直接退出
+//						loadCallback(strToken, strUid, strExpiry);
+//					}else 
+					if(isWebchatDomain()){//58域名
+						var exToken = xTempToken();
+						if(exToken==false){
+							exToken = xWBUid();
+						}
+						if(exToken==false){
+							syncLatestInfo(false);
+							createSynFlag();
+						}
+					}else{//其他域名，重新同步用户信息
+						syncLatestInfo(true);
+						createSynFlag();
+					}
+				}else if(protocol=="https:"){
+					if(isSameDomain()){
+						var exToken = xTempToken();
+						if(exToken==false){
+							exToken = xWBUid();
+						}
+						if(exToken==false){
+							loadCallback(strToken, strUid, strExpiry);
+						}
+					}else{
+						syncLatestInfo(false);
+						createSynFlag();
+					}
+				}
+			}else{
+				if(isUserExist){
+					loadCallback(strToken, strUid, strExpiry);
+					return;
+				}
+				if(protocol=="http:"){
+					if(isWebchatDomain()){//58域名
+						var exToken = xTempToken();
+						if(exToken==false){
+							exToken = xWBUid();
+						}
+						//默认还需要再同步一次
+						if(exToken==false){
+							syncLatestInfo(false);
+							createSynFlag();
+						}
+					}else{//同步用户信息
+						if(hasSyn()){
+							loadCallback(strToken, strUid, strExpiry);
+							return;
+						}
+						syncLatestInfo(true);
+						createSynFlag();
+					}
+				}else if(protocol=="https:"){
+					if(isSameDomain()){
+						var exToken = xTempToken();
+						if(exToken==false){
+							exToken = xWBUid();
+						}
+						if(exToken==false){
+							loadCallback(strToken, strUid, strExpiry);
+						}
+					}else{
+						if(hasSyn()){
+							loadCallback(strToken, strUid, strExpiry);
+							return;
+						}
+						syncLatestInfo(false);
+						createSynFlag();
+					}
+				}
+			}
+		}else if(client == "GJAPP"){
+			console.log("【djpassportJS init】client is GJAPP");
+			//如果是赶集app来源,则需要获取赶集用户信息
+			GanJi_NativeJS.getUserInfo(getGJUserInfoSucc,getGJUserInfoFail);
+		}else if(client == "LEYP"){
+			console.info("init=====LEYP");
+			//乐视的用户信息已经在跳转入口页进行了处理，并且不存在跨域的问题，不需要做初始化操作
+			isdeviceready = true;
+			if(showloginwhenReady){
+				showloginwhenReady_jumpsuccess.call(window,DjUser.getUserInfo());
+			}
+		}
+	}
+	//初始化后，直接执行
+	DjUser.init();
+	
+	/**
+	 * 如果是初始化页面的时候，就需要加载用户信息，则需要通过回调的形式
+	 * 采用共享变量、接口回调的方式与初始化线程进行通信
+	 */
+	DjUser.getUserInfo4startup = function(callback){
+		if(isdeviceready){
+			var jsonRes = DjUser.getUserInfo();
+			callback.call(window, jsonRes);
+		}else{
+			showloginwhenReady = true;
+			showloginwhenReady_jumpsuccess = callback;
+		}
+	}
+	
+	/**
+	 * 获取用户的登录信息，此几口只能在页面加载完全以后才能调用
+	 */
+	DjUser.getUserInfo = function(){
+		//获取token信息
+		strToken = getCookieDJ(djtoken);
+		//获取加密uid信息
+		strUid = getCookieDJ(djuid);
+		//获取过期时间
+		strExpiry = getCookieDJ(djexpiry);
+		if(isValid(strToken) && isValid(strUid) && isValid(strExpiry)){
+			var res={};
+			res.djfrttok = strToken;
+			//查询出明文信息
+			if(strUid.indexOf("_")>0){
+				var strPlainUid = strUid.substring(strUid.indexOf("_")+1);
+				strUid = strUid.substring(0, strUid.indexOf("_"));
+				res.djfrtplainuid = strPlainUid;
+			}
+			res.djfrtuid = strUid;
+			res.djfrtexpire = strExpiry;
+			return res;
+		}
+		return null;
+	}
+	
+	/**
+	 * 校验用户信息是否合法，只能在后续逻辑过程中进行校验
+	 */
+	DjUser.checkUser = function(callback){
+		var jsonResult = DjUser.getUserInfo();
+		if(jsonResult==null){
+			var code=-1;
+			var desc="user has not login!!!";
+			callback.call(window, code, desc);
+		}else{
+			//发送异步请求进行校验
+			var callbackName = "djCheckCallback_"+(new Date()).getTime();
+			window[callbackName]=function(code,desc){
+				callback.call(window, code, desc);
+				//清除不再使用的回调函数
+				setTimeout(function(){window[callbackName]=undefined;},1000);
+			};
+			var JSONP=document.createElement("script");  
+			JSONP.type="text/javascript";  
+			JSONP.src=strURLPrefix+"/user/vertify4callback?callback="+callbackName+"&token="+jsonResult.djfrttok+"&uid="+jsonResult.djfrtuid+"&expiry="+jsonResult.djfrtexpire;
+			document.getElementsByTagName("head")[0].appendChild(JSONP);
+		}
+	}
+	
+	/**
+	 *登录接口，只用于APP端 
+	 */
+	DjUser.login4callback = function(successFun, failFun){
+		console.log("%%%%%%");
+		if(client == "H5"){//微信或者H5渠道
+			var result={};
+			result.code="-1";
+			result.desc="not app";
+			failFun.call(window,result);
+		}else if(client == "GJAPP"){//赶集渠道
+			console.log("【DjUser.login4callback】client is GJAPP");
+			var result = DjUser.getUserInfo();
+			if(result!=null){
+				failFun.call(window,"user has login, please logout first!");
+				return;
+			}
+			//如果是赶集app来源,则需要获取赶集用户信息
+			GanJi_NativeJS.login(successFun, failFun);
+		}else if(client == "LEYP"){//乐视渠道
+			var result={};
+			result.code="-1";
+			result.desc="not app";
+			failFun.call(window,result);
+			return;
+		}else{//到家APP渠道
+			if(!isdeviceready){
+				 showloginwhenReady_jumpsuccess = successFun;
+	             showloginwhenReady_jumpcancel = failFun;
+	             showloginwhenReady = true;
+			}else{//调起APP本地登录
+				CD58UtilsPlugin.util("loginfunction",{},
+				function(data){//success call back
+					var result={};
+					result.code="0";
+					result.desc="success";
+					successFun.call(window, result);
+				},
+				function(data){//failed call back
+					var result={};
+					result.code="-1";
+					result.desc=data.msgKey;
+					failFun.call(window,result);
+				}
+				);
+			}
+		}
+	}
+	
+	/**
+	 *登录跳转到指定的新页面，此接口同时适用于H5、APP，H5情况下，登录成功以后，
+	 * param redirect 登录成功后的跳转地址
+	 * param failFun 登录失败后的回调地址
+	 * param isAppRedirect 是否采用app方式的跳转规则
+	 */
+	DjUser.login = function(redirect,failFun,isAppRedirect){
+		var result = DjUser.getUserInfo();
+		if(result!=null){
+			failFun.call(window,"user has login, please logout first!");
+			return;
+		}
+		//将相对路径补全为绝对路径
+		redirect = filterReturnUrl(redirect);
+		
+		if(client == "H5"){//微信H5
+			redirect = encodeURIComponent(redirect);
+			//TODO(兼容方案)，登录时，先跳转一下，以便将三方信息同步到主域（ios的Safari已经升级，禁止3td_party cross cookie 写入，只能以参数的形式带入），!!!!!!本方案只有在微信公众号的情况下，才存在!!!!!，后续域名统一后，删除此段代码
+			// if(protocol=="http:"){
+			// 	window.location = strURLCross58+"/login?returnUrl="+redirect;
+			// }else if(protocol=="https:"){//https协议，直接跳转，不用调起登录
+				window.location = strURLPrefix+"/login?returnUrl="+redirect;
+			// }
+		}else if(client == "GJAPP"){//赶集
+			console.log("【DjUser.login】client is GJAPP");
+			//如果是赶集app来源,则需要获取赶集用户信息
+			redirect = encodeURIComponent(redirect);
+			GanJi_NativeJS.login(redirect,failFun);
+		}else if(client == "LEYP"){//乐视
+			//redirect = encodeURIComponent(redirect);
+			LeYP_NativeJS.login(redirect,failFun);
+		}else{//到家APP
+			if(!isdeviceready){
+				 showloginwhenReady_jumpsuccess = function(data){
+					if(isAppRedirect!=undefined && isAppRedirect==true){
+						CD58RouterPlugin.backNavigateToWebView(redirect);
+					}else{
+						window.location=redirect;
+					}
+	            };
+	            showloginwhenReady_jumpcancel = function(data){ 
+					if(isAppRedirect!=undefined && isAppRedirect==true){
+						CD58RouterPlugin.backNavigateToWebView(redirect);
+					}else{
+						window.location=redirect;
+					}
+	            };
+	            showloginwhenReady = true;
+			}else{
+				//调起APP本地登录
+				CD58UtilsPlugin.util("loginfunction",{},
+				function(data){//success call back
+					if(isAppRedirect!=undefined && isAppRedirect==true){
+						CD58RouterPlugin.backNavigateToWebView(redirect);
+					}else{
+						window.location=redirect;
+					}
+				},
+				function(data){//failed call back
+					if(data.msgKey="alreadyloggedin"){
+						failFun.call(window,"user has login, please logout first!");
+					}else{
+						failFun.call(window,"system exception, please contact administrator!");
+					}
+				}
+				);
+			}
+		}
+	}
+	
+	/**
+	 * 前置登录需要跳转时，就需要在后台获取用户信息的情况
+	 */
+	DjUser.prelogin = function(redirect,failFun,isAppRedirect){
+		var result = DjUser.getUserInfo();
+		if(result!=null){
+			failFun.call(window,"user has login, please logout first!");
+			return;
+		}
+		//将相对路径补全为绝对路径
+		redirect = filterReturnUrl(redirect);
+		console.info("channel id:"+client);
+		if(client == "H5"){
+			redirect = encodeURIComponent(redirect);
+			//TODO(兼容方案)，登录时，先跳转一下，以便将三方信息同步到主域（ios的Safari已经升级，禁止3td_party cross cookie 写入，只能以参数的形式带入），!!!!!!本方案只有在微信公众号的情况下，才存在!!!!!，后续域名统一后，删除此段代码		
+			//if(protocol=="http:"){
+			//	window.location = strURLCross58+"/prelogin?returnUrl="+redirect;
+			//}else if(protocol=="https:"){//https协议，直接跳转，不用调起登录
+				window.location = strURLPrefix+"/prelogin?returnUrl="+redirect;
+			//}
+		}else if(client == "GJAPP"){//赶集APP
+			redirect = encodeURIComponent(redirect);
+			DjUser.login(redirect,failFun,isAppRedirect);
+		}else if(client == "LEYP"){//乐视黄页
+			//redirect = encodeURIComponent(redirect);
+			LeYP_NativeJS.login(redirect,failFun);
+		}else{
+			if(!isdeviceready){
+				 showloginwhenReady_jumpsuccess = function(data){
+					if(isAppRedirect!=undefined && isAppRedirect==true){
+						CD58RouterPlugin.backNavigateToWebView(redirect);
+					}else{
+						window.location=redirect;
+					}
+	            };
+	            showloginwhenReady_jumpcancel = function(data){
+					if(isAppRedirect!=undefined && isAppRedirect==true){
+						CD58RouterPlugin.backNavigateToWebView(redirect);
+					}else{
+						window.location=redirect;
+					}
+	            };
+	            showloginwhenReady = true;
+			}else{
+				//调起APP本地登录
+				CD58UtilsPlugin.util("loginfunction",{},
+				function(data){//success call back
+					if(isAppRedirect!=undefined && isAppRedirect==true){
+						CD58RouterPlugin.backNavigateToWebView(redirect);
+					}else{
+						window.location=redirect;
+					}
+				},
+				function(data){//failed call back
+					if(data.msgKey="alreadyloggedin"){
+						failFun.call(window,"user has login, please logout first!");
+					}else{
+						failFun.call(window,"system exception, please contact administrator!");
+					}
+				}
+				);
+			}
+		}
+	}
+	
+	DjUser.logout = function(redirect,failFun){
+		if(client == "APP" || client == "GJAPP" || client == "LEYP"){
+			failFun.call(window, "APP环境下只能走本地退出登录！");
+			return;
+		}
+		if(redirect==undefined || redirect==null || redirect.trim()==""){
+			failFun.call(window, "请输入正确的回调地址！");
+			return;
+		}
+		var result = DjUser.getUserInfo();
+		if(result==null){
+			failFun.call(window, "已经退出登录啦！");
+			return;
+		}
+		
+		//将本域下的cookie清除，再跳转到其他域进行退出登录操作，微信站点与主站的cookie，由后台清除
+     	if(isWebchatDomain()==false && isSameDomain()==false){
+     		cleanCookie();
+     	}
+     	cleanCookie58();
+		//在prelogin的时候，如果用户点击完登录以后，直接点击退出登录，则PATH中的用户信息又会被携带，并被拦截器拦截，则又会将用户信息回填到cookie当中，所以需要将PATH中的用户信息去掉
+		redirect = filterReturnUrl(redirect);
+		redirect = encodeURIComponent(redirect);
+		
+		// if(protocol=="http:"){
+		// 	window.location = strURLCross58 +"/user/logout?returnUrl="+ redirect;
+		// }else
+		// if(protocol=="https:"){//https协议，直接跳转，不用调起登录
+			window.location = strURLPrefix +"/user/prilogout?returnUrl="+ redirect;
+		// }
+	}
+	
+	/**
+	 * 配置单点登录的路径
+	 */
+	DjUser.config=function(url){
+		strURLPrefix = url;
+	}
+	 
+	/**
+	 * 获取配置信息
+	 */
+	DjUser.getConfig=function(url){
+		return strURLPrefix;
+	}
+	
+	/**
+	 * 获取经纬度信息
+	 */
+	DjUser.getLocation = function(callBack){
+		GanJi_NativeJS.getLocation(callBack);
+	}
+	
+	/**
+	 * 赶集逐级返回
+	 */
+	DjUser.goBack = function(tagUrl){
+		GanJi_NativeJS.goBack(tagUrl);
+	}
+	
+	window.DjUser = DjUser;
+	return DjUser;
+})();

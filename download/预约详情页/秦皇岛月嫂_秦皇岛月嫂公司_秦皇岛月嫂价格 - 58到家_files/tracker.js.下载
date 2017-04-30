@@ -1,0 +1,558 @@
+if(!!performance) {
+	var biPerformanceTimes = function() {
+		try{
+			var timing = performance.timing;
+			var loadTime = timing.loadEventEnd - timing.navigationStart;//过早获取时,loadEventEnd有时会是0
+			if(loadTime <= 0) {
+				// 未加载完，延迟200ms后继续times方法，直到成功
+				setTimeout(function(){
+				  biPerformanceTimes();
+				}, 200);
+				return;
+			 }
+			var readyStart = timing.fetchStart - timing.navigationStart;
+			var redirectTime = timing.redirectEnd  - timing.redirectStart;
+			var appcacheTime = timing.domainLookupStart  - timing.fetchStart;
+			var unloadEventTime = timing.unloadEventEnd - timing.unloadEventStart;
+			var lookupDomainTime = timing.domainLookupEnd - timing.domainLookupStart;
+			var connectTime = timing.connectEnd - timing.connectStart;
+			var requestTime = timing.responseEnd - timing.requestStart;
+			var initDomTreeTime = timing.domInteractive - timing.responseEnd;
+			var domReadyTime = timing.domComplete - timing.domInteractive; //过早获取时,domComplete有时会是0
+			var loadEventTime = timing.loadEventEnd - timing.loadEventStart;
+			var load_params={"readyStart":readyStart,"redirectTime":redirectTime,"appcacheTime":appcacheTime,"unloadEventTime":unloadEventTime,"lookupDomainTime":lookupDomainTime,"connectTime":connectTime,"requestTime":requestTime,"initDomTreeTime":initDomTreeTime,"domReadyTime":domReadyTime,"loadEventTime":loadEventTime,"loadTime":loadTime,}
+			trackLoadview(load_params);
+		}catch(e){}
+	}
+}
+ try{
+	 var bi_random=Math.round(Math.random()*10);
+	if(bi_random==8){
+		window.onload = biPerformanceTimes;// onload时，触发times方法
+	}
+}catch(e){}
+
+function setBICookie(name,value,days,domain){
+	try{
+		var exp = new Date();
+		exp.setTime(exp.getTime() + days*24*60*60*1000);
+		document.cookie = name + "=" + value + ";" + "expires=" + exp.toGMTString()+";path=/;" + (domain ? ("domain=" + domain + ";") : "");
+	}catch(e){}
+}
+function getBICookie(name) {
+	try{
+        var arr,reg=new RegExp("(^| )"+name+"=([^;]*)(;|$)");
+        if(arr=document.cookie.match(reg))
+            return arr[2];
+        else
+            return null;
+	}catch(e){}
+}
+function delCookie(name,domain){
+	try{
+        var date = new Date();
+        date.setDate(date.getDate() - 100000);
+        document.cookie = name + "=a; expires=" + date.toGMTString() + ";path=/" +";" + (domain ? ("domain=" + domain + ";") : "");
+	}catch(e){}
+}
+function getQueryString(name) {
+    var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
+	var url=location.href;
+	var hash=location.hash;
+	var params="";
+	if(url.indexOf("?")>0){
+		params=url.substring(url.indexOf("?"),url.length);
+	}
+	if(hash!=""){
+		params=params.replace(hash,"");
+	}
+    var r = decodeURIComponent(params).substr(1).match(reg);
+    if (r != null) return r[2]; return null;
+}
+function trackClick(data){
+    try{
+		if("undefined"!=typeof bi_params){
+			data=mergeJson(bi_params,data);
+		}
+        if("undefined" != typeof data){
+            writelog(data,"clickview",true);
+            if(data!=null&&typeof data=="string"){
+            	if(data.indexOf("login=success")>=0){
+            		loginStrategy(data);
+            	}
+            }
+        }else{
+            writelog(null,"clickview",true);
+        }
+    }catch(e){}
+}
+function trackPageview(data){
+    try{
+		if("undefined"!=typeof bi_params){
+			data=mergeJson(bi_params,data);
+		}
+        if("undefined" != typeof data){
+           writelog(data,"pageview",true);
+        }else{
+           writelog(null,"pageview",true);
+        }
+    }catch(e){}
+}
+function trackLoadview(data){
+    try{
+		if("undefined"!=typeof bi_params){
+			data=mergeJson(bi_params,data);
+		}
+        if("undefined" != typeof data){
+           writelog(data,"loadview",true);
+        }
+    }catch(e){}
+}
+function sendTrackerLog(a){(new Image).src=a}
+function writelog(data,logtype,flag){
+    var cookie_days = 730;//Cookie Save Days
+    var url = document.domain;
+    var cookie_domain ="." + url.match(/[\w][\w-]*\.(?:com\.cn|com|cn|co|net|org|gov|cc|biz|info|so)/)[0];
+    var log_url = "//track.daojia.com/a.gif?r="+Math.random()+"&logv=1.1&type=" + logtype;
+    var bi_hmsr = getHmsr();
+	if(bi_hmsr!=null&&bi_hmsr!=""){
+        setBICookie("bi_hmsr",bi_hmsr,cookie_days,cookie_domain);
+    }else{
+        if(getBICookie("bi_hmsr")!=null&&getBICookie("bi_hmsr")!=""){
+            bi_hmsr = getBICookie("bi_hmsr");
+        }else{
+			bi_hmsr="none";
+            setBICookie("bi_hmsr",bi_hmsr,cookie_days,cookie_domain);
+        }
+    }
+    var bi_znsr = "none";
+	if(getQueryString("znsr")!=null&&getQueryString("znsr")!=""){
+        bi_znsr = getQueryString("znsr");
+        setBICookie("bi_znsr",bi_znsr,cookie_days,cookie_domain);
+    }else{
+        if(getBICookie("bi_znsr")!=null&&getBICookie("bi_znsr")!=""){
+            bi_znsr = getBICookie("bi_znsr");
+        }else{
+            setBICookie("bi_znsr",bi_znsr,cookie_days,cookie_domain);
+        }
+    }
+    var bi_hmmd ="none";
+	if(getQueryString("hmmd")!=null&&getQueryString("hmmd")!=""){
+        bi_hmmd = getQueryString("hmmd");
+        setBICookie("bi_hmmd",bi_hmmd,cookie_days,cookie_domain);
+    }else{
+        if(getBICookie("bi_hmmd")!=null&&getBICookie("bi_hmmd")!=""){
+            bi_hmmd = getBICookie("bi_hmmd");
+        }else{
+            setBICookie("bi_hmmd",bi_hmmd,cookie_days,cookie_domain);
+        }
+    }
+    var bi_hmpl ="none";
+	if(getQueryString("hmpl")!=null&&getQueryString("hmpl")!=""){
+        bi_hmpl = getQueryString("hmpl");
+        setBICookie("bi_hmpl",bi_hmpl,cookie_days,cookie_domain);
+    }else{
+        if(getBICookie("bi_hmpl")!=null&&getBICookie("bi_hmpl")!=""){
+            bi_hmpl = getBICookie("bi_hmpl");
+        }else{
+            setBICookie("bi_hmpl",bi_hmpl,cookie_days,cookie_domain);
+        }
+    }
+    var bi_hmkw="";
+    hmkw=_getKeyWord(document.referrer);
+    if(hmkw!=null&&hmkw!=""){
+    	bi_hmkw=hmkw;
+    	setBICookie("bi_hmkw",bi_hmkw,cookie_days,cookie_domain);
+    }else{
+		if(getQueryString("hmkw")!=null&&getQueryString("hmkw")!=""){
+			bi_hmkw = getQueryString("hmkw");
+			setBICookie("bi_hmkw",bi_hmkw,cookie_days,cookie_domain);
+		}else{
+			if(getBICookie("bi_hmkw")!=null&&getBICookie("bi_hmkw")!=""){
+				bi_hmkw = getBICookie("bi_hmkw");
+			}else{
+				setBICookie("bi_hmkw",bi_hmkw,cookie_days,cookie_domain);
+			}
+		}
+    }
+    var bi_cookieid = getBICookie("bi_cookieid");
+    if(bi_cookieid==null||bi_cookieid==""){
+        bi_cookieid=(new Date).valueOf()+""+parseInt(Math.random()*10000000000);
+        setBICookie("bi_cookieid",bi_cookieid,cookie_days,cookie_domain);
+    }
+    
+	var bi_imei ="none";
+	if(getBICookie("djfrtimei")!=null&&getBICookie("djfrtimei")!=""){
+		bi_imei = getBICookie("djfrtimei");
+		setBICookie("bi_imei",bi_imei,cookie_days,cookie_domain);
+	}else if(getBICookie("bi_imei")!=null&&getBICookie("bi_imei")!=""){
+		bi_imei = getBICookie("bi_imei");
+	}else if(getQueryString("imei")!=null&&getQueryString("imei")!=""){
+		bi_imei = getQueryString("imei");
+		setBICookie("bi_imei",bi_imei,cookie_days,cookie_domain);
+	}
+	
+	var bi_appid ="none";
+	if(getBICookie("djfrtappid")!=null&&getBICookie("djfrtappid")!=""){
+		bi_appid = getBICookie("djfrtappid");
+		setBICookie("bi_appid",bi_appid,cookie_days,cookie_domain);
+	}else if(getBICookie("bi_appid")!=null&&getBICookie("bi_appid")!=""){
+		bi_appid = getBICookie("bi_appid");
+	}else if(getQueryString("appid")!=null&&getQueryString("appid")!=""){
+		bi_appid = getQueryString("appid");
+		setBICookie("bi_appid",bi_appid,cookie_days,cookie_domain);
+	}
+	
+	var bi_appversion ="none";
+	if(getBICookie("daojiaapp_version_cordova")!=null&&getBICookie("daojiaapp_version_cordova")!=""){
+		bi_appversion = getBICookie("daojiaapp_version_cordova");
+		setBICookie("bi_appversion",bi_appversion,cookie_days,cookie_domain);
+	}else if(getBICookie("bi_appversion")!=null&&getBICookie("bi_appversion")!=""){
+		bi_appversion = getBICookie("bi_appversion");
+	}
+	
+	var bi_app_usergroup ="none";
+	if(getBICookie("app_usergroup")!=null&&getBICookie("app_usergroup")!=""){
+		bi_app_usergroup = getBICookie("app_usergroup");
+		setBICookie("bi_app_usergroup",bi_app_usergroup,cookie_days,cookie_domain);
+	}else if(getBICookie("bi_app_usergroup")!=null&&getBICookie("bi_app_usergroup")!=""){
+		bi_app_usergroup = getBICookie("bi_app_usergroup");
+	}
+	
+	var bi_location ="none";
+	if(getBICookie("app_location")!=null&&getBICookie("app_location")!=""){
+		bi_location = getBICookie("app_location");
+		setBICookie("bi_location",bi_location,cookie_days,cookie_domain);
+	}else if(getQueryString("location")!=null&&getQueryString("location")!=""){
+		bi_location = getQueryString("location");
+		setBICookie("bi_location",bi_location,cookie_days,cookie_domain);
+	}else if(getBICookie("bi_location")!=null&&getBICookie("bi_location")!=""){
+		bi_location = getBICookie("bi_location");
+	}
+	
+	var bi_cityid ="none";
+	if(getBICookie("daojiaapp_cityid_cordova")!=null&&getBICookie("daojiaapp_cityid_cordova")!=""){
+		bi_cityid = getBICookie("daojiaapp_cityid_cordova");
+		setBICookie("bi_cityid",bi_cityid,cookie_days,cookie_domain);
+	}else if(getBICookie("comm_cityid")!=null&&getBICookie("comm_cityid")!=""){
+		bi_cityid = getBICookie("comm_cityid");
+		setBICookie("bi_cityid",bi_cityid,cookie_days,cookie_domain);
+	}else if(getQueryString("cityid")!=null&&getQueryString("cityid")!=""){
+		bi_cityid = getQueryString("cityid");
+		setBICookie("bi_cityid",bi_cityid,cookie_days,cookie_domain);
+	}else if(getBICookie("bi_cityid")!=null&&getBICookie("bi_cityid")!=""){
+		bi_cityid = getBICookie("bi_cityid");
+	}
+	
+	var bi_uid ="none";
+	if(getBICookie("djfrtuid")!=null&&getBICookie("djfrtuid")!=""){
+		bi_uid = getBICookie("djfrtuid");
+		setBICookie("bi_uid",bi_uid,cookie_days,cookie_domain);
+	}else if(getQueryString("uid")!=null&&getQueryString("uid")!=""){
+		bi_uid = getQueryString("uid");
+		setBICookie("bi_uid",bi_uid,cookie_days,cookie_domain);
+	}else if(getBICookie("bi_uid")!=null&&getBICookie("bi_uid")!=""){
+		bi_uid = getBICookie("bi_uid");
+	}
+	
+	var bi_linkid="";
+	if(getQueryString("linkid")!=null&&getQueryString("linkid")!=""){
+		bi_linkid=getQueryString("linkid");
+		setBICookie("bi_linkid",bi_linkid,cookie_days,cookie_domain);
+	}else if(getBICookie("bi_linkid")!=null&&getBICookie("bi_linkid")!=""){
+		if(!!bi_params && bi_params.page_type!="home_page"){
+			bi_linkid=getBICookie("bi_linkid");
+		}
+	}
+	
+    var referrer=encodeURIComponent(document.referrer);
+    if(referrer==null||referrer==""){
+        referrer="none";
+    }
+    
+	var bi_current_url=escape(location.href);
+    log_url+="&hmsr="+bi_hmsr+"&referrer="+referrer+"&cookieid="+bi_cookieid +"&hmpl="+bi_hmpl +"&hmmd="+bi_hmmd+"&hmkw="+bi_hmkw+"&znsr="+bi_znsr+"&imei="+bi_imei+"&appid="+bi_appid+"&appversion="+bi_appversion+"&app_usergroup="+bi_app_usergroup+"&cityid="+bi_cityid+"&location="+bi_location+"&uid="+bi_uid+"&url="+bi_current_url;
+    
+    if(bi_linkid!=""){
+    	log_url+="&linkid="+bi_linkid;
+    }
+    bi_abtest(cookie_domain);
+    if(data!=null&&typeof data=="object"){
+        for(var key in data){
+            var value=data[key];
+            log_url += "&"+key+"=" + value;
+        }
+    }else if(data!=null&&typeof data=="string"){
+        log_url += "&" + data;
+    }
+	if(flag){
+		sendTrackerLog(log_url);
+	}
+}
+try{
+	if("undefined" != typeof bi_params){
+		var flag=true;
+		if(bi_params.auto_mode==false||bi_params.auto_mode=="false"){
+			flag=false;
+		} 
+		writelog(bi_params,"pageview",flag);
+	}else{
+		writelog(null,"pageview",true);
+	}
+}catch(e){}
+function parse_url(url) {
+    var a = document.createElement('a');
+    a.href = url;
+    return {
+        source: url,
+        protocol: a.protocol.replace(':', ''),
+        host: a.hostname,
+        port: a.port,
+        query: a.search,
+        params: (function() {
+            var ret = {},
+                seg = a.search.replace(/^\?/, '').split('&'),
+                len = seg.length,
+                i = 0,
+                s;
+            for (; i < len; i++) {
+                if (!seg[i]) {
+                    continue;
+                }
+                s = seg[i].split('=');
+                ret[s[0]] = s[1];
+            }
+            return ret;
+        })(),
+        file: (a.pathname.match(/\/([^\/?#]+)$/i) || [, ''])[1],
+        hash: a.hash.replace('#', ''),
+        path: a.pathname.replace(/^([^\/])/, '/$1'),
+        relative: (a.href.match(/tps?:\/\/[^\/]+(.+)/) || [, ''])[1],
+        segments: a.pathname.replace(/^\//, '').split('/')
+    };
+}
+function _getKeyWord(referrer){
+	var _kw="";
+	if(referrer!=null&&referrer!=""){
+		var rf_obj=parse_url(referrer);
+	     var rf_host=rf_obj.host;
+	     if(rf_host=="www.baidu.com"){
+	    	 _kw=rf_obj.params.wd;
+	     }else if(rf_host=="m.baidu.com"){
+	    	 _kw=rf_obj.params.word;
+	     }else if(rf_host=="www.sogou.com"){
+	    	 _kw=rf_obj.params.query;
+	     }else if(rf_host=="m.sogou.com"){
+	    	 _kw=rf_obj.params.keyword;
+	     }else if(rf_host=="www.so.com"||rf_host=="m.so.com"||rf_host=="cn.bing.com"||rf_host=="global.bing.com"||rf_host=="m.sm.cn"||rf_host=="www.google.cn"||rf_host=="www.google.com.hk"){
+	    	 _kw=rf_obj.params.q;
+	     }
+	     if(typeof _kw=="undefined"){
+	    	 _kw="";
+	     }
+	}
+     return _kw;
+}
+function getHmsr(){
+	var _hmsr=getQueryString("hmsr");
+	var referrer=document.referrer;
+	if(referrer!=null&&referrer!=""&&(_hmsr==null||_hmsr=="")){
+		var rf_obj=parse_url(referrer);
+		var rf_host=rf_obj.host;
+		if(rf_host=="www.baidu.com"){
+			_hmsr="seo_baidu_pc";
+		}else if(rf_host=="m.baidu.com"){
+			_hmsr="seo_baidu_m";
+		}
+		else if(rf_host=="www.sogou.com"){
+			_hmsr="seo_sogou_pc";
+		}
+		else if(rf_host=="m.sogou.com"){
+			_hmsr="seo_sogou_m";
+		}
+		else if(rf_host=="www.so.com"){
+			_hmsr="seo_haosou_pc";
+		}
+		else if(rf_host=="m.so.com"){
+			_hmsr="seo_haosou_m";
+		}
+		else if(rf_host=="cn.bing.com"||rf_host=="global.bing.com"){
+			_hmsr="seo_bing";
+		}
+		else if(rf_host=="m.sm.cn"){
+			_hmsr="seo_sm_m";
+		}
+		else if(rf_host=="www.google.cn"||rf_host=="www.google.com.hk"){
+			_hmsr="seo_google";
+		}
+	}
+	return _hmsr;
+}
+function mergeJson(A,B){
+	var tmp=new Object();
+	if("undefined"!=typeof A){
+		for(var key in A){
+			tmp[key]=A[key];
+        }
+	}
+	if("undefined"!=typeof B){
+		if("string" == typeof B){
+			B=urlFieldsToJson(B);
+		}
+		for(var key in B){
+			tmp[key]=B[key];
+        }
+	}
+	return tmp;
+}
+function urlFieldsToJson(F){
+	var obj=new Object();
+	try{
+		var arr1=F.split("&");
+		if(arr1.length>0){
+			for(var i in arr1){
+				var arr2=arr1[i].split("=");
+				if(arr2.length==2){
+					obj[arr2[0]]=arr2[1];
+				}
+			}
+		}
+	}catch(e){}
+	return obj;
+}
+function bi_abtest(cookie_domain){
+	if(!!bi_params && bi_params.abtest!= undefined){
+		var tmp_abtest=bi_params.abtest;
+		var bi_abtest=getBICookie("abtest");
+		if(bi_abtest==null){
+			bi_abtest=tmp_abtest;
+		}else{
+			if(bi_abtest.indexOf(tmp_abtest)<0){
+				bi_abtest+="|"+tmp_abtest;
+			}
+		}
+		setBICookie("abtest",bi_abtest,1/48,cookie_domain);
+	}
+}
+//赶集埋点
+var ganji_hmsr=getBICookie("bi_hmsr");
+if(ganji_hmsr!=null&&ganji_hmsr!=""&&ganji_hmsr!="none"){
+	if(ganji_hmsr.indexOf("ganji")>=0){
+		var gj_hm = document.createElement("script");
+		gj_hm.src = "//sta.ganjistatic1.com/att/project/touch/h5_log/tracker_other.min.js";
+		var s = document.getElementsByTagName("script")[0];
+		s.parentNode.insertBefore(gj_hm, s);
+	}
+}
+//growing io
+var _vds = _vds || [];
+window._vds = _vds;
+(function(){
+	_vds.push(['setAccountId', '74bce9d2895149d68bf4e30aa9f1555e']);
+	_vds.push(['enableHT', true]);
+	(function() {
+	  var vds = document.createElement('script');
+	  vds.type='text/javascript';
+	  vds.async = true;
+	  vds.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'dn-growing.qbox.me/vds.js';
+	  var s = document.getElementsByTagName('script')[0];
+	  s.parentNode.insertBefore(vds, s);
+	})();
+})();
+
+//---------------------------------fzb----------------------------
+
+(function() {
+	try{
+		var token_id=uuid();
+		if(undefined != typeof bi_params&& undefined != bi_params.token_id){
+			token_id=bi_params.token_id;
+		}
+		_fmOpt = {
+				partner: 'daojia',
+				appName: 'daojia_web',
+				token: token_id        
+        };
+		if("undefined" != typeof bi_params){
+	    	if(bi_params!=null&&typeof bi_params=="object"){
+	    		//fzb 58 dachu
+	    		if("undefined" != typeof bi_params.load_anti_cheat&&"undefined" != typeof bi_params.pagetype){
+	    			if("true" == bi_params.load_anti_cheat&&'bind_coupon'==bi_params.pagetype){
+	    				var cimg = new Image(1,1);
+	    				cimg.onload = function() {
+	    					_fmOpt.imgLoaded = true;
+	    				};
+	    			
+			        	cimg.src = "//fp.fraudmetrix.cn/fp/clear.png?partnerCode=daojia&appName=daojia_web&tokenId=" + _fmOpt.token;
+	    				var fm = document.createElement('script'); fm.type = 'text/javascript'; fm.async = true;
+	    				fm.src = ('//') + 'tracker.daojia.com/dj_against_cheat/script/bi/sc/fm.js?ver=0.1&t=' + (new Date().getTime()/3600000).toFixed(0);
+	    				var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(fm, s);
+	    			}
+	    		}
+	    		
+	    		if("undefined" != typeof bi_params.pagetype){
+	    			if('bindsuccess'==bi_params.pagetype||'ordersuccess'==bi_params.pagetype){
+	    				var cimg = new Image(1,1);
+	    				cimg.onload = function() {
+	    					_fmOpt.imgLoaded = true;
+	    				};
+	    			
+			        	cimg.src = "//fp.fraudmetrix.cn/fp/clear.png?partnerCode=daojia&appName=daojia_web&tokenId=" + _fmOpt.token;
+	    				var fm = document.createElement('script'); fm.type = 'text/javascript'; fm.async = true;
+//			        	fm.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'static.fraudmetrix.cn/fm.js?ver=0.1&t=' + (new Date().getTime()/3600000).toFixed(0);
+	    				fm.src = ('//') + 'tracker.daojia.com/dj_against_cheat/script/bi/sc/fm.js?ver=0.1&t=' + (new Date().getTime()/3600000).toFixed(0);
+	    				var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(fm, s);
+	    			}else{
+	    				//else page
+	    			}
+	    		}else{
+	    		}
+	    	}
+	    }
+	
+	}catch(e){}
+	
+})();
+
+function uuid() {
+	var s = [];
+	var hexDigits = "0123456789ABCDEF";
+	for (var i = 0; i < 36; i++) {
+		s[i] = hexDigits.substr(Math.floor(Math.random() * 0x10), 1);
+	}
+	s[14] = "4"; // bits 12-15 of the time_hi_and_version field to 0010
+	s[19] = hexDigits.substr((s[19] & 0x3) | 0x8, 1); // bits 6-7 of the clock_seq_hi_and_reserved to 01
+	s[8] = s[13] = s[18] = s[23] = "-";
+	var uuid = s.join("");
+	return uuid;
+}
+
+function loginStrategy(data){
+	try{
+		_fmOpt = {
+				partner: 'daojia',
+				appName: 'daojia_web',
+				pagetype: 'login',
+				token: uuid()        
+        };
+		 if("undefined" !=data&&data!=null&&typeof data=="string"){
+	        	if(data.indexOf("login")>-1){
+    				var cimg = new Image(1,1);
+    				cimg.onload = function() {
+    					_fmOpt.imgLoaded = true;
+    				};
+    				_fmOpt.biData=data;
+		        	cimg.src = "//fp.fraudmetrix.cn/fp/clear.png?partnerCode=daojia&appName=daojia_web&tokenId=" + _fmOpt.token;
+    				//cimg.src = "http://tracker.daojia.com/dj_against_cheat/fp/clear.png?partnerCode=daojia&appName=daojia_web&tokenId=" + _fmOpt.token;
+    				var fm = document.createElement('script'); fm.type = 'text/javascript'; fm.async = true;
+//		        	fm.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'static.fraudmetrix.cn/fm.js?ver=0.1&t=' + (new Date().getTime()/3600000).toFixed(0);
+    				fm.src = ('//') + 'tracker.daojia.com/dj_against_cheat/script/bi/sc/fm.js?ver=0.1&t=' + (new Date().getTime()/3600000).toFixed(0);
+    				var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(fm, s);
+	        	}else{
+	        		return true;
+	        	}
+	     }
+	}catch(e){}
+}
+
+//-----------------------------------------------------------------------------

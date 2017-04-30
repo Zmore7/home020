@@ -1,0 +1,970 @@
+/*
+ * jQuery FlexSlider v2.5.0
+ * Copyright 2012 WooThemes
+ * Contributing Author: Tyler Smith
+ */!function($){$.flexslider=function(e,t){var a=$(e);a.vars=$.extend({},$.flexslider.defaults,t);var n=a.vars.namespace,i=window.navigator&&window.navigator.msPointerEnabled&&window.MSGesture,s=("ontouchstart"in window||i||window.DocumentTouch&&document instanceof DocumentTouch)&&a.vars.touch,r="click touchend MSPointerUp keyup",o="",l,c="vertical"===a.vars.direction,d=a.vars.reverse,u=a.vars.itemWidth>0,v="fade"===a.vars.animation,p=""!==a.vars.asNavFor,m={},f=!0;$.data(e,"flexslider",a),m={init:function(){a.animating=!1,a.currentSlide=parseInt(a.vars.startAt?a.vars.startAt:0,10),isNaN(a.currentSlide)&&(a.currentSlide=0),a.animatingTo=a.currentSlide,a.atEnd=0===a.currentSlide||a.currentSlide===a.last,a.containerSelector=a.vars.selector.substr(0,a.vars.selector.search(" ")),a.slides=$(a.vars.selector,a),a.container=$(a.containerSelector,a),a.count=a.slides.length,a.syncExists=$(a.vars.sync).length>0,"slide"===a.vars.animation&&(a.vars.animation="swing"),a.prop=c?"top":"marginLeft",a.args={},a.manualPause=!1,a.stopped=!1,a.started=!1,a.startTimeout=null,a.transitions=!a.vars.video&&!v&&a.vars.useCSS&&function(){var e=document.createElement("div"),t=["perspectiveProperty","WebkitPerspective","MozPerspective","OPerspective","msPerspective"];for(var n in t)if(void 0!==e.style[t[n]])return a.pfx=t[n].replace("Perspective","").toLowerCase(),a.prop="-"+a.pfx+"-transform",!0;return!1}(),a.ensureAnimationEnd="",""!==a.vars.controlsContainer&&(a.controlsContainer=$(a.vars.controlsContainer).length>0&&$(a.vars.controlsContainer)),""!==a.vars.manualControls&&(a.manualControls=$(a.vars.manualControls).length>0&&$(a.vars.manualControls)),""!==a.vars.customDirectionNav&&(a.customDirectionNav=2===$(a.vars.customDirectionNav).length&&$(a.vars.customDirectionNav)),a.vars.randomize&&(a.slides.sort(function(){return Math.round(Math.random())-.5}),a.container.empty().append(a.slides)),a.doMath(),a.setup("init"),a.vars.controlNav&&m.controlNav.setup(),a.vars.directionNav&&m.directionNav.setup(),a.vars.keyboard&&(1===$(a.containerSelector).length||a.vars.multipleKeyboard)&&$(document).bind("keyup",function(e){var t=e.keyCode;if(!a.animating&&(39===t||37===t)){var n=39===t?a.getTarget("next"):37===t?a.getTarget("prev"):!1;a.flexAnimate(n,a.vars.pauseOnAction)}}),a.vars.mousewheel&&a.bind("mousewheel",function(e,t,n,i){e.preventDefault();var s=a.getTarget(0>t?"next":"prev");a.flexAnimate(s,a.vars.pauseOnAction)}),a.vars.pausePlay&&m.pausePlay.setup(),a.vars.slideshow&&a.vars.pauseInvisible&&m.pauseInvisible.init(),a.vars.slideshow&&(a.vars.pauseOnHover&&a.hover(function(){a.manualPlay||a.manualPause||a.pause()},function(){a.manualPause||a.manualPlay||a.stopped||a.play()}),a.vars.pauseInvisible&&m.pauseInvisible.isHidden()||(a.vars.initDelay>0?a.startTimeout=setTimeout(a.play,a.vars.initDelay):a.play())),p&&m.asNav.setup(),s&&a.vars.touch&&m.touch(),(!v||v&&a.vars.smoothHeight)&&$(window).bind("resize orientationchange focus",m.resize),a.find("img").attr("draggable","false"),setTimeout(function(){a.vars.start(a)},200)},asNav:{setup:function(){a.asNav=!0,a.animatingTo=Math.floor(a.currentSlide/a.move),a.currentItem=a.currentSlide,a.slides.removeClass(n+"active-slide").eq(a.currentItem).addClass(n+"active-slide"),i?(e._slider=a,a.slides.each(function(){var e=this;e._gesture=new MSGesture,e._gesture.target=e,e.addEventListener("MSPointerDown",function(e){e.preventDefault(),e.currentTarget._gesture&&e.currentTarget._gesture.addPointer(e.pointerId)},!1),e.addEventListener("MSGestureTap",function(e){e.preventDefault();var t=$(this),n=t.index();$(a.vars.asNavFor).data("flexslider").animating||t.hasClass("active")||(a.direction=a.currentItem<n?"next":"prev",a.flexAnimate(n,a.vars.pauseOnAction,!1,!0,!0))})})):a.slides.on(r,function(e){e.preventDefault();var t=$(this),i=t.index(),s=t.offset().left-$(a).scrollLeft();0>=s&&t.hasClass(n+"active-slide")?a.flexAnimate(a.getTarget("prev"),!0):$(a.vars.asNavFor).data("flexslider").animating||t.hasClass(n+"active-slide")||(a.direction=a.currentItem<i?"next":"prev",a.flexAnimate(i,a.vars.pauseOnAction,!1,!0,!0))})}},controlNav:{setup:function(){a.manualControls?m.controlNav.setupManual():m.controlNav.setupPaging()},setupPaging:function(){var e="thumbnails"===a.vars.controlNav?"control-thumbs":"control-paging",t=1,i,s;if(a.controlNavScaffold=$('<ol class="'+n+"control-nav "+n+e+'"></ol>'),a.pagingCount>1)for(var l=0;l<a.pagingCount;l++){if(s=a.slides.eq(l),i="thumbnails"===a.vars.controlNav?'<img src="'+s.attr("data-thumb")+'"/>':"<a>"+t+"</a>","thumbnails"===a.vars.controlNav&&!0===a.vars.thumbCaptions){var c=s.attr("data-thumbcaption");""!==c&&void 0!==c&&(i+='<span class="'+n+'caption">'+c+"</span>")}a.controlNavScaffold.append("<li>"+i+"</li>"),t++}a.controlsContainer?$(a.controlsContainer).append(a.controlNavScaffold):a.append(a.controlNavScaffold),m.controlNav.set(),m.controlNav.active(),a.controlNavScaffold.delegate("a, img",r,function(e){if(e.preventDefault(),""===o||o===e.type){var t=$(this),i=a.controlNav.index(t);t.hasClass(n+"active")||(a.direction=i>a.currentSlide?"next":"prev",a.flexAnimate(i,a.vars.pauseOnAction))}""===o&&(o=e.type),m.setToClearWatchedEvent()})},setupManual:function(){a.controlNav=a.manualControls,m.controlNav.active(),a.controlNav.bind(r,function(e){if(e.preventDefault(),""===o||o===e.type){var t=$(this),i=a.controlNav.index(t);t.hasClass(n+"active")||(a.direction=i>a.currentSlide?"next":"prev",a.flexAnimate(i,a.vars.pauseOnAction))}""===o&&(o=e.type),m.setToClearWatchedEvent()})},set:function(){var e="thumbnails"===a.vars.controlNav?"img":"a";a.controlNav=$("."+n+"control-nav li "+e,a.controlsContainer?a.controlsContainer:a)},active:function(){a.controlNav.removeClass(n+"active").eq(a.animatingTo).addClass(n+"active")},update:function(e,t){a.pagingCount>1&&"add"===e?a.controlNavScaffold.append($("<li><a>"+a.count+"</a></li>")):1===a.pagingCount?a.controlNavScaffold.find("li").remove():a.controlNav.eq(t).closest("li").remove(),m.controlNav.set(),a.pagingCount>1&&a.pagingCount!==a.controlNav.length?a.update(t,e):m.controlNav.active()}},directionNav:{setup:function(){var e=$('<ul class="'+n+'direction-nav"><li class="'+n+'nav-prev"><a class="'+n+'prev" href="#">'+a.vars.prevText+'</a></li><li class="'+n+'nav-next"><a class="'+n+'next" href="#">'+a.vars.nextText+"</a></li></ul>");a.customDirectionNav?a.directionNav=a.customDirectionNav:a.controlsContainer?($(a.controlsContainer).append(e),a.directionNav=$("."+n+"direction-nav li a",a.controlsContainer)):(a.append(e),a.directionNav=$("."+n+"direction-nav li a",a)),m.directionNav.update(),a.directionNav.bind(r,function(e){e.preventDefault();var t;(""===o||o===e.type)&&(t=a.getTarget($(this).hasClass(n+"next")?"next":"prev"),a.flexAnimate(t,a.vars.pauseOnAction)),""===o&&(o=e.type),m.setToClearWatchedEvent()})},update:function(){var e=n+"disabled";1===a.pagingCount?a.directionNav.addClass(e).attr("tabindex","-1"):a.vars.animationLoop?a.directionNav.removeClass(e).removeAttr("tabindex"):0===a.animatingTo?a.directionNav.removeClass(e).filter("."+n+"prev").addClass(e).attr("tabindex","-1"):a.animatingTo===a.last?a.directionNav.removeClass(e).filter("."+n+"next").addClass(e).attr("tabindex","-1"):a.directionNav.removeClass(e).removeAttr("tabindex")}},pausePlay:{setup:function(){var e=$('<div class="'+n+'pauseplay"><a></a></div>');a.controlsContainer?(a.controlsContainer.append(e),a.pausePlay=$("."+n+"pauseplay a",a.controlsContainer)):(a.append(e),a.pausePlay=$("."+n+"pauseplay a",a)),m.pausePlay.update(a.vars.slideshow?n+"pause":n+"play"),a.pausePlay.bind(r,function(e){e.preventDefault(),(""===o||o===e.type)&&($(this).hasClass(n+"pause")?(a.manualPause=!0,a.manualPlay=!1,a.pause()):(a.manualPause=!1,a.manualPlay=!0,a.play())),""===o&&(o=e.type),m.setToClearWatchedEvent()})},update:function(e){"play"===e?a.pausePlay.removeClass(n+"pause").addClass(n+"play").html(a.vars.playText):a.pausePlay.removeClass(n+"play").addClass(n+"pause").html(a.vars.pauseText)}},touch:function(){function t(t){t.stopPropagation(),a.animating?t.preventDefault():(a.pause(),e._gesture.addPointer(t.pointerId),w=0,p=c?a.h:a.w,f=Number(new Date),l=u&&d&&a.animatingTo===a.last?0:u&&d?a.limit-(a.itemW+a.vars.itemMargin)*a.move*a.animatingTo:u&&a.currentSlide===a.last?a.limit:u?(a.itemW+a.vars.itemMargin)*a.move*a.currentSlide:d?(a.last-a.currentSlide+a.cloneOffset)*p:(a.currentSlide+a.cloneOffset)*p)}function n(t){t.stopPropagation();var a=t.target._slider;if(a){var n=-t.translationX,i=-t.translationY;return w+=c?i:n,m=w,y=c?Math.abs(w)<Math.abs(-n):Math.abs(w)<Math.abs(-i),t.detail===t.MSGESTURE_FLAG_INERTIA?void setImmediate(function(){e._gesture.stop()}):void((!y||Number(new Date)-f>500)&&(t.preventDefault(),!v&&a.transitions&&(a.vars.animationLoop||(m=w/(0===a.currentSlide&&0>w||a.currentSlide===a.last&&w>0?Math.abs(w)/p+2:1)),a.setProps(l+m,"setTouch"))))}}function s(e){e.stopPropagation();var t=e.target._slider;if(t){if(t.animatingTo===t.currentSlide&&!y&&null!==m){var a=d?-m:m,n=t.getTarget(a>0?"next":"prev");t.canAdvance(n)&&(Number(new Date)-f<550&&Math.abs(a)>50||Math.abs(a)>p/2)?t.flexAnimate(n,t.vars.pauseOnAction):v||t.flexAnimate(t.currentSlide,t.vars.pauseOnAction,!0)}r=null,o=null,m=null,l=null,w=0}}var r,o,l,p,m,f,g,h,S,y=!1,x=0,b=0,w=0;i?(e.style.msTouchAction="none",e._gesture=new MSGesture,e._gesture.target=e,e.addEventListener("MSPointerDown",t,!1),e._slider=a,e.addEventListener("MSGestureChange",n,!1),e.addEventListener("MSGestureEnd",s,!1)):(g=function(t){a.animating?t.preventDefault():(window.navigator.msPointerEnabled||1===t.touches.length)&&(a.pause(),p=c?a.h:a.w,f=Number(new Date),x=t.touches[0].pageX,b=t.touches[0].pageY,l=u&&d&&a.animatingTo===a.last?0:u&&d?a.limit-(a.itemW+a.vars.itemMargin)*a.move*a.animatingTo:u&&a.currentSlide===a.last?a.limit:u?(a.itemW+a.vars.itemMargin)*a.move*a.currentSlide:d?(a.last-a.currentSlide+a.cloneOffset)*p:(a.currentSlide+a.cloneOffset)*p,r=c?b:x,o=c?x:b,e.addEventListener("touchmove",h,!1),e.addEventListener("touchend",S,!1))},h=function(e){x=e.touches[0].pageX,b=e.touches[0].pageY,m=c?r-b:r-x,y=c?Math.abs(m)<Math.abs(x-o):Math.abs(m)<Math.abs(b-o);var t=500;(!y||Number(new Date)-f>t)&&(e.preventDefault(),!v&&a.transitions&&(a.vars.animationLoop||(m/=0===a.currentSlide&&0>m||a.currentSlide===a.last&&m>0?Math.abs(m)/p+2:1),a.setProps(l+m,"setTouch")))},S=function(t){if(e.removeEventListener("touchmove",h,!1),a.animatingTo===a.currentSlide&&!y&&null!==m){var n=d?-m:m,i=a.getTarget(n>0?"next":"prev");a.canAdvance(i)&&(Number(new Date)-f<550&&Math.abs(n)>50||Math.abs(n)>p/2)?a.flexAnimate(i,a.vars.pauseOnAction):v||a.flexAnimate(a.currentSlide,a.vars.pauseOnAction,!0)}e.removeEventListener("touchend",S,!1),r=null,o=null,m=null,l=null},e.addEventListener("touchstart",g,!1))},resize:function(){!a.animating&&a.is(":visible")&&(u||a.doMath(),v?m.smoothHeight():u?(a.slides.width(a.computedW),a.update(a.pagingCount),a.setProps()):c?(a.viewport.height(a.h),a.setProps(a.h,"setTotal")):(a.vars.smoothHeight&&m.smoothHeight(),a.newSlides.width(a.computedW),a.setProps(a.computedW,"setTotal")))},smoothHeight:function(e){if(!c||v){var t=v?a:a.viewport;e?t.animate({height:a.slides.eq(a.animatingTo).height()},e):t.height(a.slides.eq(a.animatingTo).height())}},sync:function(e){var t=$(a.vars.sync).data("flexslider"),n=a.animatingTo;switch(e){case"animate":t.flexAnimate(n,a.vars.pauseOnAction,!1,!0);break;case"play":t.playing||t.asNav||t.play();break;case"pause":t.pause()}},uniqueID:function(e){return e.filter("[id]").add(e.find("[id]")).each(function(){var e=$(this);e.attr("id",e.attr("id")+"_clone")}),e},pauseInvisible:{visProp:null,init:function(){var e=m.pauseInvisible.getHiddenProp();if(e){var t=e.replace(/[H|h]idden/,"")+"visibilitychange";document.addEventListener(t,function(){m.pauseInvisible.isHidden()?a.startTimeout?clearTimeout(a.startTimeout):a.pause():a.started?a.play():a.vars.initDelay>0?setTimeout(a.play,a.vars.initDelay):a.play()})}},isHidden:function(){var e=m.pauseInvisible.getHiddenProp();return e?document[e]:!1},getHiddenProp:function(){var e=["webkit","moz","ms","o"];if("hidden"in document)return"hidden";for(var t=0;t<e.length;t++)if(e[t]+"Hidden"in document)return e[t]+"Hidden";return null}},setToClearWatchedEvent:function(){clearTimeout(l),l=setTimeout(function(){o=""},3e3)}},a.flexAnimate=function(e,t,i,r,o){if(a.vars.animationLoop||e===a.currentSlide||(a.direction=e>a.currentSlide?"next":"prev"),p&&1===a.pagingCount&&(a.direction=a.currentItem<e?"next":"prev"),!a.animating&&(a.canAdvance(e,o)||i)&&a.is(":visible")){if(p&&r){var l=$(a.vars.asNavFor).data("flexslider");if(a.atEnd=0===e||e===a.count-1,l.flexAnimate(e,!0,!1,!0,o),a.direction=a.currentItem<e?"next":"prev",l.direction=a.direction,Math.ceil((e+1)/a.visible)-1===a.currentSlide||0===e)return a.currentItem=e,a.slides.removeClass(n+"active-slide").eq(e).addClass(n+"active-slide"),!1;a.currentItem=e,a.slides.removeClass(n+"active-slide").eq(e).addClass(n+"active-slide"),e=Math.floor(e/a.visible)}if(a.animating=!0,a.animatingTo=e,t&&a.pause(),a.vars.before(a),a.syncExists&&!o&&m.sync("animate"),a.vars.controlNav&&m.controlNav.active(),u||a.slides.removeClass(n+"active-slide").eq(e).addClass(n+"active-slide"),a.atEnd=0===e||e===a.last,a.vars.directionNav&&m.directionNav.update(),e===a.last&&(a.vars.end(a),a.vars.animationLoop||a.pause()),v)s?(a.slides.eq(a.currentSlide).css({opacity:0,zIndex:1}),a.slides.eq(e).css({opacity:1,zIndex:2}),a.wrapup(f)):(a.slides.eq(a.currentSlide).css({zIndex:1}).animate({opacity:0},a.vars.animationSpeed,a.vars.easing),a.slides.eq(e).css({zIndex:2}).animate({opacity:1},a.vars.animationSpeed,a.vars.easing,a.wrapup));else{var f=c?a.slides.filter(":first").height():a.computedW,g,h,S;u?(g=a.vars.itemMargin,S=(a.itemW+g)*a.move*a.animatingTo,h=S>a.limit&&1!==a.visible?a.limit:S):h=0===a.currentSlide&&e===a.count-1&&a.vars.animationLoop&&"next"!==a.direction?d?(a.count+a.cloneOffset)*f:0:a.currentSlide===a.last&&0===e&&a.vars.animationLoop&&"prev"!==a.direction?d?0:(a.count+1)*f:d?(a.count-1-e+a.cloneOffset)*f:(e+a.cloneOffset)*f,a.setProps(h,"",a.vars.animationSpeed),a.transitions?(a.vars.animationLoop&&a.atEnd||(a.animating=!1,a.currentSlide=a.animatingTo),a.container.unbind("webkitTransitionEnd transitionend"),a.container.bind("webkitTransitionEnd transitionend",function(){clearTimeout(a.ensureAnimationEnd),a.wrapup(f)}),clearTimeout(a.ensureAnimationEnd),a.ensureAnimationEnd=setTimeout(function(){a.wrapup(f)},a.vars.animationSpeed+100)):a.container.animate(a.args,a.vars.animationSpeed,a.vars.easing,function(){a.wrapup(f)})}a.vars.smoothHeight&&m.smoothHeight(a.vars.animationSpeed)}},a.wrapup=function(e){v||u||(0===a.currentSlide&&a.animatingTo===a.last&&a.vars.animationLoop?a.setProps(e,"jumpEnd"):a.currentSlide===a.last&&0===a.animatingTo&&a.vars.animationLoop&&a.setProps(e,"jumpStart")),a.animating=!1,a.currentSlide=a.animatingTo,a.vars.after(a)},a.animateSlides=function(){!a.animating&&f&&a.flexAnimate(a.getTarget("next"))},a.pause=function(){clearInterval(a.animatedSlides),a.animatedSlides=null,a.playing=!1,a.vars.pausePlay&&m.pausePlay.update("play"),a.syncExists&&m.sync("pause")},a.play=function(){a.playing&&clearInterval(a.animatedSlides),a.animatedSlides=a.animatedSlides||setInterval(a.animateSlides,a.vars.slideshowSpeed),a.started=a.playing=!0,a.vars.pausePlay&&m.pausePlay.update("pause"),a.syncExists&&m.sync("play")},a.stop=function(){a.pause(),a.stopped=!0},a.canAdvance=function(e,t){var n=p?a.pagingCount-1:a.last;return t?!0:p&&a.currentItem===a.count-1&&0===e&&"prev"===a.direction?!0:p&&0===a.currentItem&&e===a.pagingCount-1&&"next"!==a.direction?!1:e!==a.currentSlide||p?a.vars.animationLoop?!0:a.atEnd&&0===a.currentSlide&&e===n&&"next"!==a.direction?!1:a.atEnd&&a.currentSlide===n&&0===e&&"next"===a.direction?!1:!0:!1},a.getTarget=function(e){return a.direction=e,"next"===e?a.currentSlide===a.last?0:a.currentSlide+1:0===a.currentSlide?a.last:a.currentSlide-1},a.setProps=function(e,t,n){var i=function(){var n=e?e:(a.itemW+a.vars.itemMargin)*a.move*a.animatingTo,i=function(){if(u)return"setTouch"===t?e:d&&a.animatingTo===a.last?0:d?a.limit-(a.itemW+a.vars.itemMargin)*a.move*a.animatingTo:a.animatingTo===a.last?a.limit:n;switch(t){case"setTotal":return d?(a.count-1-a.currentSlide+a.cloneOffset)*e:(a.currentSlide+a.cloneOffset)*e;case"setTouch":return d?e:e;case"jumpEnd":return d?e:a.count*e;case"jumpStart":return d?a.count*e:e;default:return e}}();return-1*i+"px"}();a.transitions&&(i=c?"translate3d(0,"+i+",0)":"translate3d("+i+",0,0)",n=void 0!==n?n/1e3+"s":"0s",a.container.css("-"+a.pfx+"-transition-duration",n),a.container.css("transition-duration",n)),a.args[a.prop]=i,(a.transitions||void 0===n)&&a.container.css(a.args),a.container.css("transform",i)},a.setup=function(e){if(v)a.slides.css({width:"100%","float":"left",marginRight:"-100%",position:"relative"}),"init"===e&&(s?a.slides.css({opacity:0,display:"block",webkitTransition:"opacity "+a.vars.animationSpeed/1e3+"s ease",zIndex:1}).eq(a.currentSlide).css({opacity:1,zIndex:2}):0==a.vars.fadeFirstSlide?a.slides.css({opacity:0,display:"block",zIndex:1}).eq(a.currentSlide).css({zIndex:2}).css({opacity:1}):a.slides.css({opacity:0,display:"block",zIndex:1}).eq(a.currentSlide).css({zIndex:2}).animate({opacity:1},a.vars.animationSpeed,a.vars.easing)),a.vars.smoothHeight&&m.smoothHeight();else{var t,i;"init"===e&&(a.viewport=$('<div class="'+n+'viewport"></div>').css({overflow:"hidden",position:"relative"}).appendTo(a).append(a.container),a.cloneCount=0,a.cloneOffset=0,d&&(i=$.makeArray(a.slides).reverse(),a.slides=$(i),a.container.empty().append(a.slides))),a.vars.animationLoop&&!u&&(a.cloneCount=2,a.cloneOffset=1,"init"!==e&&a.container.find(".clone").remove(),a.container.append(m.uniqueID(a.slides.first().clone().addClass("clone")).attr("aria-hidden","true")).prepend(m.uniqueID(a.slides.last().clone().addClass("clone")).attr("aria-hidden","true"))),a.newSlides=$(a.vars.selector,a),t=d?a.count-1-a.currentSlide+a.cloneOffset:a.currentSlide+a.cloneOffset,c&&!u?(a.container.height(200*(a.count+a.cloneCount)+"%").css("position","absolute").width("100%"),setTimeout(function(){a.newSlides.css({display:"block"}),a.doMath(),a.viewport.height(a.h),a.setProps(t*a.h,"init")},"init"===e?100:0)):(a.container.width(200*(a.count+a.cloneCount)+"%"),a.setProps(t*a.computedW,"init"),setTimeout(function(){a.doMath(),a.newSlides.css({width:a.computedW,"float":"left",display:"block"}),a.vars.smoothHeight&&m.smoothHeight()},"init"===e?100:0))}u||a.slides.removeClass(n+"active-slide").eq(a.currentSlide).addClass(n+"active-slide"),a.vars.init(a)},a.doMath=function(){var e=a.slides.first(),t=a.vars.itemMargin,n=a.vars.minItems,i=a.vars.maxItems;a.w=void 0===a.viewport?a.width():a.viewport.width(),a.h=e.height(),a.boxPadding=e.outerWidth()-e.width(),u?(a.itemT=a.vars.itemWidth+t,a.minW=n?n*a.itemT:a.w,a.maxW=i?i*a.itemT-t:a.w,a.itemW=a.minW>a.w?(a.w-t*(n-1))/n:a.maxW<a.w?(a.w-t*(i-1))/i:a.vars.itemWidth>a.w?a.w:a.vars.itemWidth,a.visible=Math.floor(a.w/a.itemW),a.move=a.vars.move>0&&a.vars.move<a.visible?a.vars.move:a.visible,a.pagingCount=Math.ceil((a.count-a.visible)/a.move+1),a.last=a.pagingCount-1,a.limit=1===a.pagingCount?0:a.vars.itemWidth>a.w?a.itemW*(a.count-1)+t*(a.count-1):(a.itemW+t)*a.count-a.w-t):(a.itemW=a.w,a.pagingCount=a.count,a.last=a.count-1),a.computedW=a.itemW-a.boxPadding},a.update=function(e,t){a.doMath(),u||(e<a.currentSlide?a.currentSlide+=1:e<=a.currentSlide&&0!==e&&(a.currentSlide-=1),a.animatingTo=a.currentSlide),a.vars.controlNav&&!a.manualControls&&("add"===t&&!u||a.pagingCount>a.controlNav.length?m.controlNav.update("add"):("remove"===t&&!u||a.pagingCount<a.controlNav.length)&&(u&&a.currentSlide>a.last&&(a.currentSlide-=1,a.animatingTo-=1),m.controlNav.update("remove",a.last))),a.vars.directionNav&&m.directionNav.update()},a.addSlide=function(e,t){var n=$(e);a.count+=1,a.last=a.count-1,c&&d?void 0!==t?a.slides.eq(a.count-t).after(n):a.container.prepend(n):void 0!==t?a.slides.eq(t).before(n):a.container.append(n),a.update(t,"add"),a.slides=$(a.vars.selector+":not(.clone)",a),a.setup(),a.vars.added(a)},a.removeSlide=function(e){var t=isNaN(e)?a.slides.index($(e)):e;a.count-=1,a.last=a.count-1,isNaN(e)?$(e,a.slides).remove():c&&d?a.slides.eq(a.last).remove():a.slides.eq(e).remove(),a.doMath(),a.update(t,"remove"),a.slides=$(a.vars.selector+":not(.clone)",a),a.setup(),a.vars.removed(a)},m.init()},$(window).blur(function(e){focused=!1}).focus(function(e){focused=!0}),$.flexslider.defaults={namespace:"flex-",selector:".slides > li",animation:"fade",easing:"swing",direction:"horizontal",reverse:!1,animationLoop:!0,smoothHeight:!1,startAt:0,slideshow:!0,slideshowSpeed:7e3,animationSpeed:600,initDelay:0,randomize:!1,fadeFirstSlide:!0,thumbCaptions:!1,pauseOnAction:!0,pauseOnHover:!1,pauseInvisible:!0,useCSS:!0,touch:!0,video:!1,controlNav:!0,directionNav:!0,prevText:"Previous",nextText:"Next",keyboard:!0,multipleKeyboard:!1,mousewheel:!1,pausePlay:!1,pauseText:"Pause",playText:"Play",controlsContainer:"",manualControls:"",customDirectionNav:"",sync:"",asNavFor:"",itemWidth:0,itemMargin:0,minItems:1,maxItems:0,move:0,allowOneSlide:!0,start:function(){},before:function(){},after:function(){},end:function(){},added:function(){},removed:function(){},init:function(){}},$.fn.flexslider=function(e){if(void 0===e&&(e={}),"object"==typeof e)return this.each(function(){var t=$(this),a=e.selector?e.selector:".slides > li",n=t.find(a);1===n.length&&e.allowOneSlide===!0||0===n.length?(n.fadeIn(400),e.start&&e.start(t)):void 0===t.data("flexslider")&&new $.flexslider(this,e)});var t=$(this).data("flexslider");switch(e){case"play":t.play();break;case"pause":t.pause();break;case"stop":t.stop();break;case"next":t.flexAnimate(t.getTarget("next"),!0);break;case"prev":case"previous":t.flexAnimate(t.getTarget("prev"),!0);break;default:"number"==typeof e&&t.flexAnimate(e,!0)}}}(jQuery);
+
+/**
+
+ @Name : layDate v1.1 日期控件
+ @Date: 2014-06-25
+ @Site：https://sentsin.com/layui/laydate
+
+ */
+/*! fly - v1.0.0 - 2014-12-22
+ * https://github.com/amibug/fly
+ */
+! function(a) { a.fly = function(b, c) {
+        var d = { version: "1.0.0", autoPlay: !0, vertex_Rtop: 20, speed: 1.2, start: {}, end: {}, onEnd: a.noop },
+            e = this,
+            f = a(b);
+        e.init = function(a) { this.setOptions(a), !!this.settings.autoPlay && this.play() }, e.setOptions = function(b) { this.settings = a.extend(!0, {}, d, b);
+            var c = this.settings,
+                e = c.start,
+                g = c.end;
+            f.css({ marginTop: "0px", marginLeft: "0px", position: "fixed" }).appendTo("body"), null != g.width && null != g.height && a.extend(!0, e, { width: f.width(), height: f.height() });
+            var h = Math.min(e.top, g.top) - Math.abs(e.left - g.left) / 3;
+            h < c.vertex_Rtop && (h = Math.min(c.vertex_Rtop, Math.min(e.top, g.top)));
+            var i = Math.sqrt(Math.pow(e.top - g.top, 2) + Math.pow(e.left - g.left, 2)),
+                j = Math.ceil(Math.min(Math.max(Math.log(i) / .05 - 75, 30), 100) / c.speed),
+                k = e.top == h ? 0 : -Math.sqrt((g.top - h) / (e.top - h)),
+                l = (k * e.left - g.left) / (k - 1),
+                m = g.left == l ? 0 : (g.top - h) / Math.pow(g.left - l, 2);
+            a.extend(!0, c, { count: -1, steps: j, vertex_left: l, vertex_top: h, curvature: m }) }, e.play = function() { this.move() }, e.move = function() {
+            var b = this.settings,
+                c = b.start,
+                d = b.count,
+                e = b.steps,
+                g = b.end,
+                h = c.left + (g.left - c.left) * d / e,
+                i = 0 == b.curvature ? c.top + (g.top - c.top) * d / e : b.curvature * Math.pow(h - b.vertex_left, 2) + b.vertex_top;
+            if (null != g.width && null != g.height) {
+                var j = e / 2,
+                    k = g.width - (g.width - c.width) * Math.cos(j > d ? 0 : (d - j) / (e - j) * Math.PI / 2),
+                    l = g.height - (g.height - c.height) * Math.cos(j > d ? 0 : (d - j) / (e - j) * Math.PI / 2);
+                f.css({ width: k + "px", height: l + "px", "font-size": Math.min(k, l) + "px" }) }
+            f.css({ left: h + "px", top: i + "px" }), b.count++;
+            var m = window.requestAnimationFrame(a.proxy(this.move, this));
+            d == e && (window.cancelAnimationFrame(m), b.onEnd.apply(this)) }, e.destory = function() { f.remove() }, e.init(c) }, a.fn.fly = function(b) {
+        return this.each(function() { void 0 == a(this).data("fly") && a(this).data("fly", new a.fly(this, b)) }) } }(jQuery);
+// fly end
+/*
+var offset = $("#end").offset();
+	$(".addcar").click(function(event){
+		var addcar = $(this);
+		var img = addcar.parent().find('img').attr('src');
+		var flyer = $('<img class="u-flyer" src="'+img+'">');
+		flyer.fly({
+			start: {
+				left: event.pageX,
+				top: event.pageY
+			},
+			end: {
+				left: offset.left+10,
+				top: offset.top+10,
+				width: 0,
+				height: 0
+			},
+			onEnd: function(){
+				$("#msg").show().animate({width: '250px'}, 200).fadeOut(1000);
+				addcar.css("cursor","default").removeClass('orange').unbind('click');
+				this.destory();
+			}
+		});
+	});
+
+*/
+
+;
+! function(win) {
+
+    //全局配置，如果采用默认均不需要改动
+    var config = {
+        path: '', //laydate所在路径
+        skin: 'default', //初始化皮肤
+        format: 'YYYY-MM-DD', //日期格式
+        min: '1900-01-01 00:00:00', //最小日期
+        max: '2099-12-31 23:59:59', //最大日期
+        isv: false,
+        // remote: null,
+        // isLegend: false,
+        init: true
+    };
+
+    var Dates = {},
+        doc = document,
+        creat = 'createElement',
+        byid = 'getElementById',
+        tags = 'getElementsByTagName';
+    var as = ['laydate_box', 'laydate_void', 'laydate_click', 'LayDateSkin', 'skins/'];
+
+
+    //主接口
+    win.laydate = function(options) {
+        options = options || {};
+        try {
+            as.event = win.event ? win.event : laydate.caller.arguments[0];
+        } catch (e) {};
+        Dates.run(options);
+        return laydate;
+    };
+
+    laydate.v = '1.1';
+
+    //获取组件存放路径
+    Dates.getPath = (function() {
+        var js = document.scripts,
+            jsPath = js[js.length - 1].src;
+        return config.path ? config.path : jsPath.substring(0, jsPath.lastIndexOf("/") + 1);
+    }());
+
+    Dates.trim = function(str) {
+        str = str || '';
+        return str.replace(/^\s|\s$/g, '').replace(/\s+/g, ' ');
+    };
+
+    //补齐数位
+    Dates.digit = function(num) {
+        return num < 10 ? '0' + (num | 0) : num;
+    };
+
+    Dates.stopmp = function(e) {
+        e = e || win.event;
+        e.stopPropagation ? e.stopPropagation() : e.cancelBubble = true;
+        return this;
+    };
+
+    Dates.each = function(arr, fn) {
+        var i = 0,
+            len = arr.length;
+        for (; i < len; i++) {
+            if (fn(i, arr[i]) === false) {
+                break
+            }
+        }
+    };
+
+    Dates.hasClass = function(elem, cls) {
+        elem = elem || {};
+        return new RegExp('\\b' + cls + '\\b').test(elem.className);
+    };
+
+    Dates.addClass = function(elem, cls) {
+        elem = elem || {};
+        Dates.hasClass(elem, cls) || (elem.className += ' ' + cls);
+        elem.className = Dates.trim(elem.className);
+        return this;
+    };
+
+    Dates.removeClass = function(elem, cls) {
+        elem = elem || {};
+        if (Dates.hasClass(elem, cls)) {
+            var reg = new RegExp('\\b' + cls + '\\b');
+            elem.className = elem.className.replace(reg, '');
+        }
+        return this;
+    };
+
+    //清除css属性
+    Dates.removeCssAttr = function(elem, attr) {
+        var s = elem.style;
+        if (s.removeProperty) {
+            s.removeProperty(attr);
+        } else {
+            s.removeAttribute(attr);
+        }
+    };
+
+    //显示隐藏
+    Dates.shde = function(elem, type) {
+        elem.style.display = type ? 'none' : 'block';
+    };
+
+    //简易选择器
+    Dates.query = function(node) {
+        if (node && node.nodeType === 1) {
+            if (node.tagName.toLowerCase() !== 'input') {
+                throw new Error('选择器elem错误');
+            }
+            return node;
+        }
+
+        var node = (Dates.trim(node)).split(' '),
+            elemId = doc[byid](node[0].substr(1)),
+            arr;
+        if (!elemId) {
+            return;
+        } else if (!node[1]) {
+            return elemId;
+        } else if (/^\./.test(node[1])) {
+            var find, child = node[1].substr(1),
+                exp = new RegExp('\\b' + child + '\\b');
+            arr = []
+            find = doc.getElementsByClassName ? elemId.getElementsByClassName(child) : elemId[tags]('*');
+            Dates.each(find, function(ii, that) {
+                exp.test(that.className) && arr.push(that);
+            });
+            return arr[0] ? arr : '';
+        } else {
+            arr = elemId[tags](node[1]);
+            return arr[0] ? elemId[tags](node[1]) : '';
+        }
+    };
+
+    //事件监听器
+    Dates.on = function(elem, even, fn) {
+        elem.attachEvent ? elem.attachEvent('on' + even, function() {
+            fn.call(elem, win.even);
+        }) : elem.addEventListener(even, fn, false);
+        return Dates;
+    };
+
+    //阻断mouseup
+    Dates.stopMosup = function(evt, elem) {
+        if (evt !== 'mouseup') {
+            Dates.on(elem, 'mouseup', function(ev) {
+                Dates.stopmp(ev);
+            });
+        }
+    };
+
+    Dates.run = function(options) {
+        var S = Dates.query,
+            elem, devt, even = as.event,
+            target;
+        try {
+            target = even.target || even.srcElement || {};
+        } catch (e) {
+            target = {};
+        }
+        elem = options.elem ? S(options.elem) : target;
+
+        as.elemv = /textarea|input/.test(elem.tagName.toLocaleLowerCase()) ? 'value' : 'innerHTML';
+        if (('init' in options ? options.init : config.init));
+        //&& (!elem[as.elemv])) elem[as.elemv] = laydate.now(null, options.format || config.format
+
+        if (even && target.tagName) {
+            if (!elem || elem === Dates.elem) {
+                return;
+            }
+            Dates.stopMosup(even.type, elem);
+            Dates.stopmp(even);
+            Dates.view(elem, options);
+            Dates.reshow();
+        } else {
+            devt = options.event || 'click';
+            Dates.each((elem.length | 0) > 0 ? elem : [elem], function(ii, that) {
+                Dates.stopMosup(devt, that);
+                Dates.on(that, devt, function(ev) {
+                    Dates.stopmp(ev);
+                    if (that !== Dates.elem) {
+                        Dates.view(that, options);
+                        Dates.reshow();
+                    }
+                });
+            });
+        }
+    };
+
+    Dates.scroll = function(type) {
+        type = type ? 'scrollLeft' : 'scrollTop';
+        return doc.body[type] | doc.documentElement[type];
+    };
+
+    Dates.winarea = function(type) {
+        return document.documentElement[type ? 'clientWidth' : 'clientHeight']
+    };
+
+    //判断闰年
+    Dates.isleap = function(year) {
+        return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+    };
+
+    //检测是否在有效期
+    Dates.checkVoid = function(YY, MM, DD) {
+        var back = [];
+        YY = YY | 0;
+        MM = MM | 0;
+        DD = DD | 0;
+        if (YY < Dates.mins[0]) {
+            back = ['y'];
+        } else if (YY > Dates.maxs[0]) {
+            back = ['y', 1];
+        } else if (YY >= Dates.mins[0] && YY <= Dates.maxs[0]) {
+            if (YY == Dates.mins[0]) {
+                if (MM < Dates.mins[1]) {
+                    back = ['m'];
+                } else if (MM == Dates.mins[1]) {
+                    if (DD < Dates.mins[2]) {
+                        back = ['d'];
+                    }
+                }
+            }
+            if (YY == Dates.maxs[0]) {
+                if (MM > Dates.maxs[1]) {
+                    back = ['m', 1];
+                } else if (MM == Dates.maxs[1]) {
+                    if (DD > Dates.maxs[2]) {
+                        back = ['d', 1];
+                    }
+                }
+            }
+        }
+        return back;
+    };
+
+    //时分秒的有效检测
+    Dates.timeVoid = function(times, index) {
+        if (Dates.ymd[1] + 1 == Dates.mins[1] && Dates.ymd[2] == Dates.mins[2]) {
+            if (index === 0 && (times < Dates.mins[3])) {
+                return 1;
+            } else if (index === 1 && times < Dates.mins[4]) {
+                return 1;
+            } else if (index === 2 && times < Dates.mins[5]) {
+                return 1;
+            }
+        } else if (Dates.ymd[1] + 1 == Dates.maxs[1] && Dates.ymd[2] == Dates.maxs[2]) {
+            if (index === 0 && times > Dates.maxs[3]) {
+                return 1;
+            } else if (index === 1 && times > Dates.maxs[4]) {
+                return 1;
+            } else if (index === 2 && times > Dates.maxs[5]) {
+                return 1;
+            }
+        }
+        if (times > (index ? 59 : 23)) {
+            return 1;
+        }
+    };
+
+    //检测日期是否合法
+    Dates.check = function() {
+        var reg = Dates.options.format.replace(/YYYY|MM|DD|hh|mm|ss/g, '\\d+\\').replace(/\\$/g, '');
+        var exp = new RegExp(reg),
+            value = Dates.elem[as.elemv];
+        var arr = value.match(/\d+/g) || [],
+            isvoid = Dates.checkVoid(arr[0], arr[1], arr[2]);
+        if (value.replace(/\s/g, '') !== '') {
+            if (!exp.test(value)) {
+                Dates.elem[as.elemv] = '';
+                Dates.msg('日期不符合格式，请重新选择。');
+                return 1;
+            } else if (isvoid[0]) {
+                Dates.elem[as.elemv] = '';
+                Dates.msg('日期不在有效期内，请重新选择。');
+                return 1;
+            } else {
+                isvoid.value = Dates.elem[as.elemv].match(exp).join();
+                arr = isvoid.value.match(/\d+/g);
+                if (arr[1] < 1) {
+                    arr[1] = 1;
+                    isvoid.auto = 1;
+                } else if (arr[1] > 12) {
+                    arr[1] = 12;
+                    isvoid.auto = 1;
+                } else if (arr[1].length < 2) {
+                    isvoid.auto = 1;
+                }
+                if (arr[2] < 1) {
+                    arr[2] = 1;
+                    isvoid.auto = 1;
+                } else if (arr[2] > Dates.months[(arr[1] | 0) - 1]) {
+                    arr[2] = 31;
+                    isvoid.auto = 1;
+                } else if (arr[2].length < 2) {
+                    isvoid.auto = 1;
+                }
+                if (arr.length > 3) {
+                    if (Dates.timeVoid(arr[3], 0)) {
+                        isvoid.auto = 1;
+                    };
+                    if (Dates.timeVoid(arr[4], 1)) {
+                        isvoid.auto = 1;
+                    };
+                    if (Dates.timeVoid(arr[5], 2)) {
+                        isvoid.auto = 1;
+                    };
+                }
+                if (isvoid.auto) {
+                    Dates.creation([arr[0], arr[1] | 0, arr[2] | 0], 1);
+                } else if (isvoid.value !== Dates.elem[as.elemv]) {
+                    Dates.elem[as.elemv] = isvoid.value;
+                }
+            }
+        }
+    };
+
+    //生成日期
+    Dates.months = [31, null, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    Dates.viewDate = function(Y, M, D, data) {
+        var S = Dates.query,
+            log = {},
+            De = new Date();
+        Y < (Dates.mins[0] | 0) && (Y = (Dates.mins[0] | 0));
+        Y > (Dates.maxs[0] | 0) && (Y = (Dates.maxs[0] | 0));
+
+        D = Dates.months[M] < D ? Dates.months[M] : D;
+        De.setFullYear(Y, M, D);
+        log.ymd = [De.getFullYear(), De.getMonth(), De.getDate()];
+
+        Dates.months[1] = Dates.isleap(log.ymd[0]) ? 29 : 28;
+
+        De.setFullYear(log.ymd[0], log.ymd[1], 1);
+        log.FDay = De.getDay();
+
+        log.PDay = Dates.months[M === 0 ? 11 : M - 1] - log.FDay + 1;
+        log.NDay = 1;
+
+        //渲染日
+        Dates.each(as.tds, function(i, elem) {
+            var YY = log.ymd[0],
+                MM = log.ymd[1] + 1,
+                DD;
+            elem.className = '';
+            if (i < log.FDay) {
+                elem.innerHTML = DD = i + log.PDay;
+                Dates.addClass(elem, 'laydate_nothis');
+                MM === 1 && (YY -= 1);
+                MM = MM === 1 ? 12 : MM - 1;
+            } else if (i >= log.FDay && i < log.FDay + Dates.months[log.ymd[1]]) {
+                elem.innerHTML = DD = i - log.FDay + 1;
+                if (i - log.FDay + 1 === log.ymd[2]) {
+                    Dates.addClass(elem, as[2]);
+                    log.thisDay = elem;
+                }
+            } else {
+                elem.innerHTML = DD = log.NDay++;
+                Dates.addClass(elem, 'laydate_nothis');
+                MM === 12 && (YY += 1);
+                MM = MM === 12 ? 1 : MM + 1;
+            }
+
+            if (Dates.checkVoid(YY, MM, DD)[0]) {
+                Dates.addClass(elem, as[1]);
+            }
+
+            Dates.options.festival && Dates.festival(elem, MM + '.' + DD);
+            elem.setAttribute('y', YY);
+            elem.setAttribute('m', MM);
+            elem.setAttribute('d', DD);
+            YY = MM = DD = null;
+        });
+
+        Dates.valid = !Dates.hasClass(log.thisDay, as[1]);
+        Dates.ymd = log.ymd;
+
+        //锁定年月
+        as.month.value = Dates.ymd[0] + '年' + Dates.digit(Dates.ymd[1] + 1) + '月';
+    };
+
+    //节日
+    Dates.festival = function(td, md) {
+        var str;
+        switch (md) {
+            case '1.1':
+                str = '元旦';
+                break;
+            case '3.8':
+                str = '妇女';
+                break;
+            case '4.5':
+                str = '清明';
+                break;
+            case '5.1':
+                str = '劳动';
+                break;
+            case '6.1':
+                str = '儿童';
+                break;
+            case '9.10':
+                str = '教师';
+                break;
+            case '10.1':
+                str = '国庆';
+                break;
+        };
+        str && (td.innerHTML = str);
+        str = null;
+    };
+
+    //初始化面板数据
+    Dates.initDate = function() {
+        var S = Dates.query,
+            log = {},
+            De = new Date();
+        var ymd = Dates.elem[as.elemv].match(/\d+/g) || [];
+        if (ymd.length < 3) {
+            ymd = Dates.options.start.match(/\d+/g) || [];
+            if (ymd.length < 3) {
+                ymd = [De.getFullYear(), De.getMonth() + 1, De.getDate()];
+            }
+        }
+        Dates.inymd = ymd;
+        Dates.viewDate(ymd[0], ymd[1] - 1, ymd[2]);
+    };
+
+    //方位辨别
+    Dates.orien = function(obj, pos) {
+        var tops, rect = Dates.elem.getBoundingClientRect();
+        obj.style.left = rect.left + (pos ? 0 : Dates.scroll(1)) + 'px';
+        if (rect.bottom + obj.offsetHeight / 1.5 <= Dates.winarea()) {
+            tops = rect.bottom - 1;
+        } else {
+            tops = rect.top > obj.offsetHeight / 1.5 ? rect.top - obj.offsetHeight + 1 : Dates.winarea() - obj.offsetHeight;
+        }
+        obj.style.top = Math.max(tops + (pos ? 0 : Dates.scroll()), 1) + 'px';
+    };
+
+    //吸附定位
+    Dates.follow = function(obj) {
+        if (Dates.options.fixed) {
+            obj.style.position = 'fixed';
+            Dates.orien(obj, 1);
+        } else {
+            obj.style.position = 'absolute';
+            Dates.orien(obj);
+        }
+    };
+
+    //生成表格
+    Dates.viewtb = (function() {
+        var tr, view = [],
+            weeks = ['日', '一', '二', '三', '四', '五', '六'];
+        var log = {},
+            table = doc[creat]('table'),
+            thead = doc[creat]('thead');
+        thead.appendChild(doc[creat]('tr'));
+        log.creath = function(i) {
+            var th = doc[creat]('th');
+            th.innerHTML = weeks[i];
+            thead[tags]('tr')[0].appendChild(th);
+            th = null;
+        };
+
+        Dates.each(new Array(6), function(i) {
+            view.push([]);
+            tr = table.insertRow(0);
+            Dates.each(new Array(7), function(j) {
+                view[i][j] = 0;
+                i === 0 && log.creath(j);
+                tr.insertCell(j);
+            });
+        });
+
+        table.insertBefore(thead, table.children[0]);
+        table.id = table.className = 'laydate_table';
+        tr = view = null;
+        return table.outerHTML.toLowerCase();
+    }());
+
+    //渲染控件骨架
+    Dates.view = function(elem, options) {
+        var S = Dates.query,
+            div, log = {};
+        options = options || elem;
+
+        Dates.elem = elem;
+        Dates.parentElem = options.parent ? S(options.parent) : document.body;
+        Dates.options = options;
+        Dates.options.format || (Dates.options.format = config.format);
+        Dates.options.start = Dates.options.start || '';
+        Dates.mm = log.mm = [Dates.options.min || config.min, Dates.options.max || config.max];
+        Dates.mins = log.mm[0].match(/\d+/g);
+        Dates.maxs = log.mm[1].match(/\d+/g);
+
+        if (!Dates.box) {
+            div = doc[creat]('div');
+            div.id = as[0];
+            div.className = as[0];
+            div.style.cssText = 'position: absolute;';
+            div.setAttribute('name', 'laydate-v' + laydate.v);
+
+            div.innerHTML = log.html = '<div class="laydate_top">' + '<div class="laydate_ym laydate_m" id="laydate_MM">' + '<a class="laydate_choose laydate_chprev laydate_tab"><cite></cite></a>' + '<input id="laydate_m" readonly>' + '<a class="laydate_choose laydate_chnext laydate_tab"><cite></cite></a>' + '</div>' + '</div>'
+
+            + Dates.viewtb
+
+                + '<div class="laydate_bottom">' + '</div>';
+            doc.body.appendChild(div);
+            Dates.box = S('#' + as[0]);
+            Dates.events();
+            div = null;
+        } else {
+            Dates.shde(Dates.box);
+        }
+        Dates.follow(Dates.box);
+        options.zIndex ? Dates.box.style.zIndex = options.zIndex : Dates.removeCssAttr(Dates.box, 'z-index');
+        Dates.stopMosup('click', Dates.box);
+
+        Dates.initDate();
+        Dates.check();
+    };
+
+    //隐藏内部弹出元素
+    Dates.reshow = function() {
+        Dates.each(Dates.query('#' + as[0] + ' .laydate_show'), function(i, elem) {
+            Dates.removeClass(elem, 'laydate_show');
+        });
+        return this;
+    };
+
+    //关闭控件
+    Dates.close = function() {
+        Dates.reshow();
+        Dates.shde(Dates.query('#' + as[0]), 1);
+        Dates.elem = null;
+    };
+
+    //转换日期格式
+    Dates.parse = function(ymd, hms, format) {
+        ymd = ymd.concat(hms);
+        format = format || (Dates.options ? Dates.options.format : config.format);
+        return format.replace(/YYYY|MM|DD|hh|mm|ss/g, function(str, index) {
+            ymd.index = ++ymd.index | 0;
+            return Dates.digit(ymd[ymd.index]);
+        });
+    };
+
+    //返回最终日期
+    Dates.creation = function(ymd, hide) {
+        var S = Dates.query;
+        var getDates = Dates.parse(ymd, []);
+        Dates.elem[as.elemv] = getDates;
+        if (!hide) {
+            Dates.close();
+            typeof Dates.options.choose === 'function' && Dates.options.choose(getDates);
+        }
+    };
+
+    //事件
+    Dates.events = function() {
+        var S = Dates.query,
+            log = {
+                box: '#' + as[0]
+            };
+
+        Dates.addClass(doc.body, 'laydate_body');
+
+        as.tds = S('#laydate_table td');
+        as.year = S('#laydate_y');
+        as.month = S('#laydate_m');
+
+        //切换月
+        log.tabMonth = function(type) {
+            if (type) {
+                Dates.ymd[1]++;
+                if (Dates.ymd[1] === 12) {
+                    Dates.ymd[0]++;
+                    Dates.ymd[1] = 0;
+                }
+            } else {
+                Dates.ymd[1]--;
+                if (Dates.ymd[1] === -1) {
+                    Dates.ymd[0]--;
+                    Dates.ymd[1] = 11;
+                }
+            }
+            Dates.viewDate(Dates.ymd[0], Dates.ymd[1], Dates.ymd[2]);
+        };
+        Dates.each(S('#laydate_MM .laydate_tab'), function(i, elem) {
+            Dates.on(elem, 'click', function(ev) {
+                Dates.stopmp(ev).reshow();
+                log.tabMonth(i);
+            });
+        });
+
+        //选择日
+        Dates.each(S('#laydate_table td'), function(i, elem) {
+            Dates.on(elem, 'click', function(ev) {
+                if (!Dates.hasClass(this, as[1])) {
+                    Dates.stopmp(ev);
+                    Dates.creation([this.getAttribute('y') | 0, this.getAttribute('m') | 0, this.getAttribute('d') | 0]);
+                }
+            });
+        });
+
+        Dates.on(doc, 'click', function() {
+            var box = S('#' + as[0]);
+            if (box && box.style.display !== 'none') {
+                Dates.check() || Dates.close();
+            }
+        }).on(doc, 'keydown', function(event) {
+            event = event || win.event;
+            var codes = event.keyCode;
+
+            //如果在日期显示的时候按回车
+            if (codes === 13 && Dates.elem) {
+                Dates.creation([Dates.ymd[0], Dates.ymd[1] + 1, Dates.ymd[2]]);
+            }
+        });
+
+        Dates.on(S(log.box), 'click', function() {
+            Dates.reshow();
+        });
+    };
+
+    Dates.init = (function() {}());
+
+    laydate.shde = function() {
+            if (Dates.box) {
+                Dates.shde(Dates.box, true);
+            }
+        }
+        //重置定位
+    laydate.reset = function() {
+        (Dates.box && Dates.elem) && Dates.follow(Dates.box);
+    };
+
+    //返回指定日期
+    laydate.now = function(timestamp, format) {
+        var De = new Date((timestamp | 0) ? function(tamp) {
+            return tamp < 86400000 ? (+new Date + tamp * 86400000) : tamp;
+        }(parseInt(timestamp)) : +new Date);
+        return Dates.parse(
+            [De.getFullYear(), De.getMonth() + 1, De.getDate()], [De.getHours(), De.getMinutes(), De.getSeconds()],
+            format
+        );
+    };
+
+}(window);
+
+
+(function($) {
+    var _dj = {};
+    window._dj = _dj;
+
+    _dj.modal = function(args) {
+        args = args || { show: false };
+        /*{
+        images:
+        text:
+        }*/
+
+        var html_arr = [
+            '<div class="modal3 modal-fixed" id="modal3">',
+            '<div class="modal3-mark"></div>',
+            ' <div class="modal3-cont">',
+            ' <div class="modal-header">',
+            '<div class="sorry" alt="抱歉"></div>',
+            '<span class="close"></span>',
+            '</div>',
+            '<p class="modal-text"> ',
+            '</p>',
+            ' </div>',
+            '</div>'
+        ];
+
+        var $modal3 = $("#modal3");
+        var $modalCont = null;
+        if ($modal3.length == 0) {
+            $(document.body).append(html_arr.join(""));
+            $modal3 = $("#modal3");
+            $modal3.on("click", ".close", function() {
+                $modal3.hide();
+                args.callback && args.callback();
+            });
+        } else {
+            $modal3.show();
+        }
+
+
+        if (args.show == false) {
+            $modal3.hide();
+        }
+
+        function scroll (type){
+            type = type ? 'scrollLeft' : 'scrollTop';
+            return document.body[type] | document.documentElement[type];
+        };
+
+        function winarea (type){
+            return document.documentElement[type ? 'clientWidth' : 'clientHeight']
+        };
+
+        $modalText = $modal3.find(".modal-text");
+
+        $modalText.html(args.html);
+        
+        if (args.follow) {
+        	$modal3.removeClass('modal-fixed');
+        	$modalCont = $modal3.find('.modal3-cont');
+        	$modalCont.css('position','absolute');
+            var tops, pos, rect = args.elem.getBoundingClientRect(), offset = $(args.elem).offset();
+            $modalCont.css('left', offset.left - ($modalCont[0].offsetWidth - rect.width) + 130);
+            if($modalCont[0].offsetHeight >= offset.top - $(window).scrollTop()){
+                tops = offset.top +  rect.height - 1;
+            } else {
+                tops = offset.top - $modalCont[0].offsetHeight + 1 ;
+            }
+            $modalCont.css('top', tops);
+        }
+
+    }
+
+
+    _dj.modal4 = function(args) {
+
+        args = args || { show: false };
+
+        /*{
+        text:
+        show:true
+        }*/
+        var $modal4 = $("#modal4");
+        var $modalCont = null;
+        if ($modal4.length == 0) {
+            return;
+        }
+        $modal4.on("click", ".close", function() {
+            $modal4.hide();
+            if (args.closeFn) {
+                args.closeFn();
+            }
+        });
+        if (args.show == true) {
+            $modal4.show();
+        } else {
+            $modal4.hide();
+        }
+        
+
+        function scroll (type){
+            type = type ? 'scrollLeft' : 'scrollTop';
+            return document.body[type] | document.documentElement[type];
+        };
+
+        function winarea (type){
+            return document.documentElement[type ? 'clientWidth' : 'clientHeight']
+        };
+
+        $modalText = $modal4.find(".modal-text");
+
+        $modalText.html(args.html);
+        
+        if (args.follow) {
+        	$modal4.removeClass('modal-fixed');
+        	$modalCont = $modal4.find('.modal4-cont');
+        	$modalCont.css('position','absolute');
+            var tops, pos, rect = args.elem.getBoundingClientRect(), offset = $(args.elem).offset();
+            $modalCont.css('left', offset.left - ($modalCont[0].offsetWidth - rect.width) + 140);
+            if($modalCont[0].offsetHeight >= offset.top - $(window).scrollTop()){
+                tops = offset.top +  rect.height - 1;
+            } else {
+                tops = offset.top - $modalCont[0].offsetHeight + 1 ;
+            }
+            $modalCont.css('top', tops);
+        }
+    }
+
+    function initLXB() {
+
+        var reg =/^[1][345678][0-9]{9}$/; 
+        var $rightBar = $("#right_bar");
+        var $lxbBtn = $rightBar.find("#lxb_btn");
+        var $lxbPhone = $rightBar.find("#lxb_phone");
+        var $text = $rightBar.find(".lxb-text");
+        document.write('<script type="text/javascript"  data-lxb-uid="10883567" data-lxb-gid="205346" src="https://lxbjs.baidu.com/api/asset/api.js?t=' + new Date().getTime() + '" charset="utf-8"></scr' + 'ipt>');
+       
+
+
+        $lxbBtn.on("click", function() {
+            var telInputVal = $lxbPhone.val();
+            if (!re.test(telInputVal)) {
+                $text.html("请直接输入手机号").show();
+                setTimeout(function() {
+                    $text.hide();
+                }, 2000)
+                return;
+            } else {
+                $text.html("请注意接听...").show();
+            }
+            if (!window.lxb) return;
+            lxb.call(document.getElementById("lxb_phone"));
+            if (window.lxbConfig && window.lxbConfig.callBtn1 && $.isFunction(lxbConfig.callBtn1)) window.lxbConfig.callBtn1();
+        });
+
+
+    }
+
+    initLXB();
+
+    _dj.initDropMenu =function() {
+
+
+        var $top_login = $("#top_login");
+        var $drop_down = $top_login.find(".drop-down");
+        var timeOutId = null;
+
+        $top_login.on("mouseenter", '.mine', function() {
+            $(this).addClass("active");
+            $drop_down.removeClass("hide");
+            // console.log(1);
+        })
+        $top_login.on("mouseleave", '.mine', function() {
+            timeOutId = setTimeout(function() {
+                $(this).removeClass("active");
+                $drop_down.addClass("hide");
+
+            }, 1000);
+        })
+
+        $drop_down.on("mouseenter", function() {
+            if (timeOutId != null) {
+                clearTimeout(timeOutId);
+                timeOutId = null;
+            }
+        })
+        $drop_down.on("mouseleave", function() {
+            $drop_down.addClass("hide");
+            $(".mine").removeClass("active");
+
+        })
+    }
+  _dj.initDropMenu();
+
+    // _dj.modal4({show:true});
+
+
+_dj.winScroll =function(args){
+  var $target = args.$target ;
+  var top = $target.offset().top ;
+  $("body,html").animate({"scrollTop":top -80},400);
+}
+// _dj.winScroll({ $target:$(".filter-result-wrap") });
+
+var leftBar= $('.left-bar');
+var Close= $('.left-bar').find('#close');
+	Close.on('click', function (){
+		leftBar.css('display', 'none');
+	});
+
+// requestAnimationFrame
+(function () {
+  var lastTime = 0;
+  var vendors = ['webkit', 'moz'];
+  for (var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
+    window.requestAnimationFrame = window[vendors[x] + 'RequestAnimationFrame'];
+    window.cancelAnimationFrame =
+      window[vendors[x] + 'CancelAnimationFrame'] || window[vendors[x] + 'CancelRequestAnimationFrame'];
+  }
+
+  if (!window.requestAnimationFrame){
+    window.requestAnimationFrame = function (callback, element) {
+      var currTime = new Date().getTime();
+      var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+      var id = window.setTimeout(function () {
+          callback(currTime + timeToCall);
+        },
+        timeToCall);
+      lastTime = currTime + timeToCall;
+      return id;
+    };
+  }
+  if (!window.cancelAnimationFrame){
+    window.cancelAnimationFrame = function (id) {
+      clearTimeout(id);
+    };
+  }
+}());
+
+
+})(window.jQuery || window.Zepto);

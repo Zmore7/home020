@@ -1,0 +1,681 @@
+/*
+ * jQuery JSONP Core Plugin 2.4.0 (2012-08-21)
+ *
+ * https://github.com/jaubourg/jquery-jsonp
+ *
+ * Copyright (c) 2012 Julian Aubourg
+ *
+ * This document is licensed as free software under the terms of the
+ * MIT License: https://www.opensource.org/licenses/mit-license.php
+ */
+(function($) {
+
+    // ###################### UTILITIES ##
+
+    // Noop
+    function noop() {}
+
+    // Generic callback
+    function genericCallback(data) {
+        lastValue = [data];
+    }
+
+    // Call if defined
+    function callIfDefined(method, object, parameters) {
+        return method && method.apply(object.context || object, parameters);
+    }
+
+    // Give joining character given url
+    function qMarkOrAmp(url) {
+        return /\?/.test(url) ? "&" : "?";
+    }
+
+    var // String constants (for better minification)
+        STR_ASYNC = "async",
+        STR_CHARSET = "charset",
+        STR_EMPTY = "",
+        STR_ERROR = "error",
+        STR_INSERT_BEFORE = "insertBefore",
+        STR_JQUERY_JSONP = "_jqjsp",
+        STR_ON = "on",
+        STR_ON_CLICK = STR_ON + "click",
+        STR_ON_ERROR = STR_ON + STR_ERROR,
+        STR_ON_LOAD = STR_ON + "load",
+        STR_ON_READY_STATE_CHANGE = STR_ON + "readystatechange",
+        STR_READY_STATE = "readyState",
+        STR_REMOVE_CHILD = "removeChild",
+        STR_SCRIPT_TAG = "<script>",
+        STR_SUCCESS = "success",
+        STR_TIMEOUT = "timeout",
+
+        // Window
+        win = window,
+        // Deferred
+        Deferred = $.Deferred,
+        // Head element
+        head = $("head")[0] || document.documentElement,
+        // Page cache
+        pageCache = {},
+        // Counter
+        count = 0,
+        // Last returned value
+        lastValue,
+
+        // ###################### DEFAULT OPTIONS ##
+        xOptionsDefaults = {
+            //beforeSend: undefined,
+            //cache: false,
+            callback: STR_JQUERY_JSONP,
+            //callbackParameter: undefined,
+            //charset: undefined,
+            //complete: undefined,
+            //context: undefined,
+            //data: "",
+            //dataFilter: undefined,
+            //error: undefined,
+            //pageCache: false,
+            //success: undefined,
+            //timeout: 0,
+            //traditional: false,
+            url: location.href
+        },
+
+        // opera demands sniffing :/
+        opera = win.opera,
+
+        // IE < 10
+        oldIE = !!$("<div>").html("<!--[if IE]><i><![endif]-->").find("i").length;
+
+    // ###################### MAIN FUNCTION ##
+    function jsonp(xOptions) {
+
+        // Build data with default
+        xOptions = $.extend({}, xOptionsDefaults, xOptions);
+
+        // References to xOptions members (for better minification)
+        var successCallback = xOptions.success,
+            errorCallback = xOptions.error,
+            completeCallback = xOptions.complete,
+            dataFilter = xOptions.dataFilter,
+            callbackParameter = xOptions.callbackParameter,
+            successCallbackName = xOptions.callback,
+            cacheFlag = xOptions.cache,
+            pageCacheFlag = xOptions.pageCache,
+            charset = xOptions.charset,
+            url = xOptions.url,
+            data = xOptions.data,
+            timeout = xOptions.timeout,
+            pageCached,
+
+            // Abort/done flag
+            done = 0,
+
+            // Life-cycle functions
+            cleanUp = noop,
+
+            // Support vars
+            supportOnload,
+            supportOnreadystatechange,
+
+            // Request execution vars
+            firstChild,
+            script,
+            scriptAfter,
+            timeoutTimer;
+
+        // If we have Deferreds:
+        // - substitute callbacks
+        // - promote xOptions to a promise
+        Deferred && Deferred(function(defer) {
+            defer.done(successCallback).fail(errorCallback);
+            successCallback = defer.resolve;
+            errorCallback = defer.reject;
+        }).promise(xOptions);
+
+        // Create the abort method
+        xOptions.abort = function() {
+            !(done++) && cleanUp();
+        };
+
+        // Call beforeSend if provided (early abort if false returned)
+        if (callIfDefined(xOptions.beforeSend, xOptions, [xOptions]) === !1 || done) {
+            return xOptions;
+        }
+
+        // Control entries
+        url = url || STR_EMPTY;
+        data = data ? ((typeof data) == "string" ? data : $.param(data, xOptions.traditional)) : STR_EMPTY;
+
+        // Build final url
+        url += data ? (qMarkOrAmp(url) + data) : STR_EMPTY;
+
+        // Add callback parameter if provided as option
+        callbackParameter && (url += qMarkOrAmp(url) + encodeURIComponent(callbackParameter) + "=?");
+
+        // Add anticache parameter if needed
+        !cacheFlag && !pageCacheFlag && (url += qMarkOrAmp(url) + "_" + (new Date()).getTime() + "=");
+
+        // Replace last ? by callback parameter
+        url = url.replace(/=\?(&|$)/, "=" + successCallbackName + "$1");
+
+        // Success notifier
+        function notifySuccess(json) {
+
+            if (!(done++)) {
+
+                cleanUp();
+                // Pagecache if needed
+                pageCacheFlag && (pageCache[url] = { s: [json] });
+                // Apply the data filter if provided
+                dataFilter && (json = dataFilter.apply(xOptions, [json]));
+                // Call success then complete
+                callIfDefined(successCallback, xOptions, [json, STR_SUCCESS, xOptions]);
+                callIfDefined(completeCallback, xOptions, [xOptions, STR_SUCCESS]);
+
+            }
+        }
+
+        // Error notifier
+        function notifyError(type) {
+
+            if (!(done++)) {
+
+                // Clean up
+                cleanUp();
+                // If pure error (not timeout), cache if needed
+                pageCacheFlag && type != STR_TIMEOUT && (pageCache[url] = type);
+                // Call error then complete
+                callIfDefined(errorCallback, xOptions, [xOptions, type]);
+                callIfDefined(completeCallback, xOptions, [xOptions, type]);
+
+            }
+        }
+
+        // Check page cache
+        if (pageCacheFlag && (pageCached = pageCache[url])) {
+
+            pageCached.s ? notifySuccess(pageCached.s[0]) : notifyError(pageCached);
+
+        } else {
+
+            // Install the generic callback
+            // (BEWARE: global namespace pollution ahoy)
+            win[successCallbackName] = genericCallback;
+
+            // Create the script tag
+            script = $(STR_SCRIPT_TAG)[0];
+            script.id = STR_JQUERY_JSONP + count++;
+
+            // Set charset if provided
+            if (charset) {
+                script[STR_CHARSET] = charset;
+            }
+
+            opera && opera.version() < 11.60 ?
+                // onerror is not supported: do not set as async and assume in-order execution.
+                // Add a trailing script to emulate the event
+                ((scriptAfter = $(STR_SCRIPT_TAG)[0]).text = "document.getElementById('" + script.id + "')." + STR_ON_ERROR + "()") :
+                // onerror is supported: set the script as async to avoid requests blocking each others
+                (script[STR_ASYNC] = STR_ASYNC)
+
+            ;
+
+            // Internet Explorer: event/htmlFor trick
+            if (oldIE) {
+                script.htmlFor = script.id;
+                script.event = STR_ON_CLICK;
+            }
+
+            // Attached event handlers
+            script[STR_ON_LOAD] = script[STR_ON_ERROR] = script[STR_ON_READY_STATE_CHANGE] = function(result) {
+
+                // Test readyState if it exists
+                if (!script[STR_READY_STATE] || !/i/.test(script[STR_READY_STATE])) {
+
+                    try {
+
+                        script[STR_ON_CLICK] && script[STR_ON_CLICK]();
+
+                    } catch (_) {}
+
+                    result = lastValue;
+                    lastValue = 0;
+                    result ? notifySuccess(result[0]) : notifyError(STR_ERROR);
+
+                }
+            };
+
+            // Set source
+            script.src = url;
+
+            // Re-declare cleanUp function
+            cleanUp = function(i) {
+                timeoutTimer && clearTimeout(timeoutTimer);
+                script[STR_ON_READY_STATE_CHANGE] = script[STR_ON_LOAD] = script[STR_ON_ERROR] = null;
+                head[STR_REMOVE_CHILD](script);
+                scriptAfter && head[STR_REMOVE_CHILD](scriptAfter);
+            };
+
+            // Append main script
+            head[STR_INSERT_BEFORE](script, (firstChild = head.firstChild));
+
+            // Append trailing script if needed
+            scriptAfter && head[STR_INSERT_BEFORE](scriptAfter, firstChild);
+
+            // If a timeout is needed, install it
+            timeoutTimer = timeout > 0 && setTimeout(function() {
+                notifyError(STR_TIMEOUT);
+            }, timeout);
+
+        }
+
+        return xOptions;
+    }
+
+    // ###################### SETUP FUNCTION ##
+    jsonp.setup = function(xOptions) {
+        $.extend(xOptionsDefaults, xOptions);
+    };
+
+    // ###################### INSTALL in jQuery ##
+    $.jsonp = jsonp;
+
+})(jQuery);
+ 
+
+/*jquery.placeholder.js zxx */
+(function(a,b){a.fn.placeholder=function(e){var f={labelMode:false,labelStyle:{},labelAlpha:false,labelAcross:false};var g=a.extend({},f,e||{});var d=function(i,h){if(i.val()===""){h.css("opacity",0.4).html(i.data("placeholder"))}else{h.html("")}},c=function(i){if(document.querySelector){return a(i).attr("placeholder")}else{var h;h=i.getAttributeNode("placeholder");return h&&h.nodeValue!==""?h.nodeValue:b}};a(this).each(function(){var k=a(this),j="placeholder" in document.createElement("input"),l=c(this);if(!l||(!g.labelMode&&j)||(g.labelMode&&!g.labelAcross&&j)){return}k.data("placeholder",l);if(g.labelMode){var h=k.attr("id"),i=null;if(!h){h="placeholder"+Math.random();k.attr("id",h)}i=a('<label for="'+h+'"></label>').css(a.extend({lineHeight:"1.3",position:"absolute",color:"graytext",cursor:"text",marginLeft:k.css("marginLeft"),marginTop:k.css("marginTop"),paddingLeft:k.css("paddingLeft"),paddingTop:k.css("paddingTop")},g.labelStyle)).insertBefore(k);if(g.labelAlpha){k.bind({focus:function(){d(a(this),i)},input:function(){d(a(this),i)},blur:function(){if(this.value===""){i.css("opacity",1).html(l)}}});if(!window.screenX){k.get(0).onpropertychange=function(m){m=m||window.event;if(m.propertyName=="value"){d(k,i)}}}i.get(0).oncontextmenu=function(){k.trigger("focus");return false}}else{k.bind({focus:function(){i.html("")},blur:function(){if(a(this).val()===""){i.html(l)}}})}if(g.labelAcross){k.removeAttr("placeholder")}if(k.val()===""){i.html(l)}}else{k.bind({focus:function(){if(a(this).val()===l){a(this).val("")}a(this).css("color","")},blur:function(){if(a(this).val()===""){a(this).val(l).css("color","graytext")}}});if(k.val()===""){k.val(l).css("color","graytext")}}});return a(this)}})(jQuery);
+/* jquery.placeholder.js end*/ 
+
+function initLogin() {
+    var loginFormHtml = [
+    ' <div class="theme-popover">',
+      '  <div class="theme-popbod dform">',
+        '    <div class="form">',
+                '<div class="theme-poptit"> <span title="关闭" class="close"></span>',
+               ' <h3 id="title" class="title">登录</h3></div>',
+               ' <div  class="login-tip err-info"></div>',
+                '<div style="display:block" class="div-date  clearfix" id="yuchanqi">',
+                   ' <p class="border">',
+                   ' <span class="ycq-name">您的预产期：</span>',
+                        '<input placeholder="请选择您的预产期" id="div_ych_date" class="date" type="text">',
+                   ' </p>',
+                    '<div class="ipt-box hide" id="isborn"><span class="check-option">宝宝已出生</span></div>',
+                '</div>',
+               ' <div class="div-name clearfix">',
+                   ' <p class="border">',
+                       ' <input type="text" id="phone" class="infos" placeholder="请输入手机号码">',
+                   ' </p>',
+                '</div>',
+                '<div class="div-imgCode-wrap">',
+                    '<div class="div-imgCode clearfix">',
+                        '<p class="imgcode-wrap border no-top">',
+                           ' <input class="imgCode-input" type="text" placeholder="请输入图形验证码" id="imgCode_input" maxlength="6">',
+                            '<img id="imgCode" class="imgCode" src="', "https://passport.daojia.com/verifycode?v=" + (new Date()).getTime(), ' alt="图形验证码">',
+                       ' </p>',
+                    '</div>',
+               ' </div>',
+               ' <div class="div-phone clearfix">',
+                   ' <div class="yzm">',
+                       ' <p class="border no-top">',
+                            '<input type="text" id="login_code" class="infos" placeholder="请输入验证码">',
+                            '<a href="javascript:;" class="send1" id="send_code">获取验证码</a>',
+                       ' </p>',
+                   ' </div>',
+               ' </div>',
+               ' <div class="div-conform clearfix">',
+                   ' <a href="javascript:;" class="conform" id="user_login">登录</a>',
+                '</div>',
+            '</div>',
+        '</div>',
+    '</div>' ];
+    if ($(".theme-popover").length == 0) {
+        $(document.body).append(loginFormHtml.join(""));
+        $(".theme-popover").find("input").placeholder();
+
+
+    }
+
+    var sends = {
+        checked: 1,
+        $loginForm: $(".theme-popover"),
+        is_ajax: false,
+        is_getCode: true,
+	    failFunction: function(info){
+	    	console.log(info);
+	    },
+        initEvent: function() {
+            var _this = this;
+            $('.theme-login').click(function() {
+//                _this.$loginForm.show();
+//                $("#yuchanqi").hide();
+//                $("#isborn").hide();
+//                $("#title").html("用户登录");
+//                $("#title").removeClass('tit-size');
+//                $("#user_login").html("登录");
+            	var backurl = window.location.href;
+            	DjUser.login(backurl, sends.failFunction);
+            })
+            this.$loginForm.on('click', '.close', function() {
+                _this.$loginForm.hide();
+            });
+
+            $("#send_code").on("click", function() {
+                sends.send();
+            });
+            $("#imgCode").on("click", function() {
+                $(this).attr("src", "https://passport.daojia.com/verifycode?v=" + (new Date()).getTime());
+            });
+            $("#user_login").on("click", function() {
+                sends.conform();
+            });
+
+            $(".exit").on("click", function() {
+//                sends.loginout();
+            	var backurl = window.location.href;
+            	DjUser.logout(backurl, sends.failFunction);
+            });
+        },
+        tipPhone: function(msg) {
+            msg = msg || "手机号码有误，请重新输入";
+            var $loginTip = this.$loginForm.find(".login-tip");
+            if ( $loginTip.hasClass("active") ) return;
+            $loginTip.text(msg).addClass("active");
+            setTimeout(function() {
+               $loginTip.removeClass('active');
+            }, 2000);
+        },
+        tipCode: function(msg) {
+            msg = msg || "验证码不能为空";
+          var $loginTip = this.$loginForm.find(".login-tip");
+            if ( $loginTip.hasClass("active") ) return;
+            $loginTip.text(msg).addClass("active");
+            setTimeout(function() {
+               $loginTip.removeClass('active');
+            }, 2000);
+        },
+        tipImgCode: function(msg) {
+            msg = msg || "图形验证码不能为空";
+          var $loginTip = this.$loginForm.find(".login-tip");
+            if ( $loginTip.hasClass("active") ) return;
+            $loginTip.text(msg).addClass("active");
+            setTimeout(function() {
+               $loginTip.removeClass('active');
+            }, 2000);
+        },
+        tipAjax: function(msg, type) {
+            msg = msg || "系统繁忙，请稍候再试试";
+            var $loginTip = this.$loginForm.find(".login-tip");
+            if (type == "succ") {
+                $loginTip.text(msg).addClass("active").addClass("succ-info").removeClass("err-info");
+
+                setTimeout(function() {
+                    $loginTip.removeClass("active");
+                }, 2000);
+            }
+            if (type == "error") {
+                $loginTip.text(msg).addClass("active").addClass("err-info").removeClass("succ-info");
+                setTimeout(function() {
+                    $loginTip.removeClass("active");
+                }, 2000);
+            }
+
+        },
+        showLogin: function(code) {
+            this.$loginForm.show();
+            if (code == "yuesao") {
+                $("#yuchanqi").show();
+                $("#isborn").show();
+                $('#title').addClass('tit-size');
+                $("#title").html("请留下您的信息，我们立即为您安排月嫂面试");
+                $("#user_login").html("确定");
+            } 
+           else if (code == "yuersao") {      
+                $("#yuchanqi").hide();
+                $("#isborn").hide();         
+                $('#title').addClass('tit-size');
+                $("#title").html("请留下您的信息，我们立即为您安排育儿嫂面试");
+                $("#user_login").html("确定");
+            } 
+            else {
+                $("#yuchanqi").hide();
+                $("#isborn").hide();
+                $("#title").html("用户登录");
+                $("#user_login").html("登录");
+            }
+        },
+
+        callbacks: [
+            function(json) {
+                json = json || {};
+                $("#login_out").show();
+                $("#login_in").hide();
+                $("#login_out span").text(json.userPhone);
+                $(".theme-login").hide();
+                $(".theme-popover").hide();
+            },
+            function(json) {
+
+            }
+        ],
+        doCallbacks: function(json) {
+            this.callbacks[0](json);
+            this.callbacks[1]();
+        },
+        addCallbacks: function(fn) {
+            this.callbacks[1] = fn;
+        },
+        isRefresh: true,
+        conform: function() {
+            var numbers = /^[1][345678][0-9]{9}$/;
+            var numReg = /^[0-9]{4,6}$/;
+            var phone = $('#phone').val().replace(/\s+/g, ""); //获取输入手机号码
+            var code = $("#login_code").val();
+            var imgcode = $("#imgCode_input").val();
+            var $sendCode = $("#send_code");
+
+            if (!numbers.test(phone)) {
+                this.tipPhone();
+                return;
+            }
+            if (code == "") {
+                this.tipCode("验证码不能为空");
+                return;
+            }
+            if (imgcode == "" || imgcode == undefined) {
+                this.tipImgCode("图形验证码不能为空");
+                return;
+            }
+            if (!numReg.test(code)) {
+                this.tipCode("验证码不正确");
+                return;
+            }
+            this.is_ajax = true;
+            var _this = this;
+
+            $.ajax({
+                url: "/unionlogin",
+                data: { phone: phone, code: code },
+                dataType: "json",
+                success: function(data) {
+                    _this.is_ajax = false;
+                    if (data.code == "0") {
+                        //调用业务方法或者刷新当前页面
+                        //                      var flag = $("#login").attr("data");
+
+                        if (_this.isRefresh) { //头部点击登录
+                            location.reload(true);
+                        } else { //其他预约等登录调用他们的业务方法
+                            _this.tipAjax("登录成功", "succ");
+                            _this.doCallbacks(data);
+                        }
+                    } else {
+                        _this.tipAjax(data.msg, "error");
+                    }
+                },
+                error: function() {
+                    _this.is_ajax = false;
+                    _this.tipAjax("系统发生错误", "error");
+                }
+            });
+        },
+        send: function() {
+            var numbers = /^[1][345678][0-9]{9}$/;
+            var phone = $('#phone').val().replace(/\s+/g, ""); //获取输入手机号码   
+            var $sendCode = $("#send_code");
+            var imgcode = $("#imgCode_input").val();
+
+
+            data = {};
+            _this = this;
+            if (phone == "") {
+                this.tipPhone("手机号不能为空");
+                return;
+            }
+            if (!numbers.test(phone)) {
+                this.tipPhone("手机号输入不正确");
+                return;
+            }
+            if (imgcode == "" || imgcode == undefined) {
+                this.tipImgCode("图形验证码不能为空");
+                return;
+            }
+            sends.is_ajax = true;
+            if ($sendCode.hasClass("send0")) return;
+            $.jsonp({
+                type: 'GET',
+                url: sendMessageUrl,
+                data: { phone: phone, imgcode: imgcode, json: "jsonp" },
+                callbackParameter: "callback",
+                dataType: 'jsonp',
+                success: function(data, status, xOptions) {
+                    if (data.flag == "0") {
+                        _this.is_ajax = false;
+                        _this.is_getCode = true;
+                        initDownTime();
+                    } else {
+
+                        if (data.flag == "1") {
+                            _this.tipImgCode(data.msg || "图形验证码错误");
+                            $("#imgCode").attr("src", passportUrl+"/verifycode?v=" + (new Date()).getTime());
+                            $("#imgCode_input").val("");
+                            return;
+                        }
+                        _this.tipCode(data.msg || "验证码发送失败");
+                    }
+                },
+                error: function(xOptions, textStatus) {
+                    _this.is_ajax = false;
+                    _this.is_getCode = true;
+                    _this.tipAjax("系统发生错误", "error");
+                }
+            });
+
+
+
+
+            var timer;
+
+            function initDownTime() {
+                var time = 60;
+                var $divconformA = $('.div-conform a');
+                var $divphoneSpan = $('.div-phone span');
+                var $divphoneA = $('.div-phone a');
+
+                $('.div-phone span').remove();
+                $('.div-name span').remove();
+                $('.div-conform a').addClass('actives');
+
+                function timeCountDown() {
+                    if (time == 0) {
+                        clearInterval(timer);
+                        $sendCode.addClass('send1').removeClass('send0').html("重获验证码");
+                        sends.checked = 1;
+                        return true;
+                    }
+                    $sendCode.html(time + "S");
+                    time--;
+                    return false;
+                    sends.checked = 0;
+                }
+                $sendCode.addClass('send0').removeClass('send1');
+                timeCountDown();
+                timer = setInterval(timeCountDown, 1000);
+            }
+
+        },
+
+        loginout: function() {
+            var numbers = /^[1][345678][0-9]{9}$/;
+            var reg = /^[a-z0-9]+.*\/personal\/.*/;
+            $.ajax({
+                url: "/unionloginout",
+                data: { phone: "" },
+                dataType: "json",
+                success: function(data) {
+                    var refe = location.href;
+                    if (data.code == "0") {
+                        if (refe == "" || reg.test(refe)) {
+                            refe = "https://www.daojia.com";
+                        }
+                        location.reload(true);
+                    }
+                },
+                error: function() {
+                    _this.tipAjax("系统发生错误", "error");
+                }
+            });
+        }
+    }
+
+    sends.initEvent();
+    return sends;
+
+    // $('.div-name').on('focus', 'input', function() {
+    //     $('.div-phone .border,.div-name .border').removeClass('active');
+    //     $(".error").hide();
+    // });
+
+}
+_dj.Login = initLogin();
+
+function failFunction(info){
+	console.log(info);
+}
+function islogin(){
+	var json = DjUser.getUserInfo();
+    if (json != null) {
+        return true;
+    }
+    return false;
+}
+function goPassport(backurl){
+	DjUser.login(backurl, failFunction);
+}
+//function islogin() {
+//    var json = $('#userRtnInfo').val();
+//    if (json != null && json.length > 0) {
+//        //JSON.parse
+//        //$('#userInfo').val(); '{"user":"","fd"}'
+//        return true;
+//    }
+//    return false;
+//
+//}
+laydate({
+    elem: '#div_ych_date',
+    format: 'YYYY-MM-DD', // 分隔符可以任意定义，该例子表示只显示年月
+    festival: false, //显示节日
+    min: '2016-06-06 00:00:00', //最小日期
+    max: '2018-12-31 23:59:59' //最大日期
+
+});
+var iptBox = $(".ipt-box").find('span');
+iptBox.on('click', function() {
+    if ($(this).hasClass('checked')) {
+        $(this).removeClass('checked');
+    } else {
+        $(this).addClass('checked');
+    }
+});
+// _dj.Login.addCallbacks(fn);

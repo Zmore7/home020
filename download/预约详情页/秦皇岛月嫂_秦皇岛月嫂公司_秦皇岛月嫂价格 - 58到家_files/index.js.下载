@@ -1,0 +1,578 @@
+var flag = false;
+$(function () {
+	$().ready(function() {
+		get400Tel();
+	});
+	$(".panel").pin({
+		minWidth: 1000,
+		containerSelector: ".container"
+	});
+	$(".elevator").pin({
+		containerSelector: ".container",
+		minWidth: 1000,
+		activeClass: 'hover'
+	});
+	$('.elevator').stickUp({
+		parts: {
+			0:'baozhang',
+			1:'peixun',
+			2: 'laixin',
+			3: 'yitian',
+			4: 'fuwu',
+			5: 'jiage',
+			6: 'liucheng'
+		},
+		itemClass: 'menuItem',
+		itemHover: 'active'
+	});
+	$("#tel").placeholder();
+	$("#datetime").placeholder();
+	$(".input-z").hide();
+	initUserInfo();
+	//弹出式日历
+	var oToday = new Date();
+	var oCal = new Calendar({
+		id: "#datetime",
+		isPopup: !0,
+		isPrevBtn: !0,
+		isNextBtn: !0,
+		monthStep: 1,
+		isReadonly: !0,
+		selectDate: oToday,
+		range: {mindate: oToday, maxdate: "2020-12-31"}
+	});
+	oCal.revise = {top:0, left:0};
+	oCal.on("dateClick", function(obj) {
+		this.selectDate = obj["data-date"];
+	});
+	//立即预约按钮
+	$("#ljyy").click(function(){
+		trackClick('action=daojia_yuesao_base_reserve&csbaction=daojia_yuesao_base_reserve');
+		orderYuesao(loadUserInfoForIframe);
+	});
+	//删除手机号码按钮
+	$("#inp-del").click(function(){
+		$("#tel").val("");
+	});
+})
+//用户输入信息cookie名称
+var userInfoCookieName = "userinfo";
+var timeoutID = null;
+//立即预约
+function orderYuesao(callback){
+	if(checkForm()){
+			//验证订单逻辑
+			if(isLogin()){
+				$("#ljyy").unbind("click");
+				$.ajax({
+				    type: 'POST',
+				    url: '/yuesao/order/submit' ,
+				    data: getYuesaoData($("#tel").val()),
+				    success: function(result){
+				    	//result = eval("("+result+")")
+				    	if(result.code=='0'){//成功
+				          	window.location.href='/yuesao/success/?respmsg='+result.message;
+				    	}else if(result.code=='2'){//登录
+				    		showTemp("","",true);
+							if(!!callback){
+								callback();
+							}
+							bindCheckEvent();
+				    	}else if(result.code=='3'){//验证手机号
+				    		showTemp("手机验证下单","立即验证直接下单",false);
+							if(!!callback){
+								callback();
+							}
+							bindCheckEvent();
+				    	}else if(result.code=='89'){//被人预订了
+				    		alert(result.message)
+				    		$(".form_err_tip").html(result.message);
+				    		$(".form_err_tip").show();
+				        }else{
+				        	alert("提交失败")
+				        	$(".form_err_tip").html(result.message);
+				    		$(".form_err_tip").show();
+				        }
+				    	$("#ljyy").bind("click",function(){
+				    		orderYuesao(loadUserInfoForIframe);
+				    	});
+				    } ,
+				    dataType: "json"
+				});
+			}else{
+				showTemp("","",true);
+				if(!!callback){
+					callback();
+				}
+				bindCheckEvent();
+			}
+	}
+}
+
+//活动月嫂数据
+function getYuesaoData(phone){
+	var shtml ="";
+	var yuesaoId ="";
+	shtml+= "{";
+	shtml+= "'tel':'"	+phone+"'";
+	shtml+= ",'securityCode':'"+$('#myCode').val()+"'";
+	shtml+= ",'backdate':" +"'"+$("#datetime").val()+"'";
+	shtml+= ",'duration':'" + $("#duration").val()+"'";
+	shtml+= ",'yuesao':"+ "'"+ $("#randomYuesao").val() +"'";
+	shtml+= ",'addressend':'待定','lat':'0.0','lng':'0.0','gateNo':''";
+	shtml+= "}";
+	return eval("("+shtml+")");
+}
+
+//预约输入验证
+function checkForm(){
+   var checkresult = true;
+   //电话验证
+   var tel =  $("#tel").val();
+   if($.trim(tel)==''){
+	  $("#mobile_error").html("<span>请输入手机号码</span>");
+      $("#mobile_error").show();
+      checkresult = false;
+   }
+   if(checkresult && !(/^1[3|4|5|8|7][0-9]\d{8}$/.test(tel))){
+	  $("#mobile_error").html("<span>请输入正确的手机号码</span>")
+	  $("#mobile_error").show();
+      checkresult = false;
+   }
+   if(checkresult)
+   {
+	  hideError($("#mobile_error"));
+   }
+   //预约日期
+   var date =  $("#datetime").val();
+   if($.trim(date)==''){
+	   $("#calendar_error").html("<span>请选择开始日期</span>")
+	   $("#calendar_error").show();
+       checkresult = false;
+   }else{
+	   hideError($("#calendar_error"));
+   }
+   return checkresult;
+}
+//判断是否登录
+function isLogin(){
+	$("#ljyy").unbind("click");
+	var rtnb = false;
+	$.ajax({
+	    type: 'GET',
+	    url: '/ysShouye/checkLoginStatus' ,
+	    data: "phone="+$("#tel").val()+"&t="+Math.random(),
+	    async:false,
+	    success: function(data){
+	    	//已登录，讲电话赋值到里面，验证手机
+	    	if(data.msg=="1"){
+	    		rtnb =  true;
+	    	}
+	    	$("#ljyy").bind("click",function(){
+	    		orderYuesao(loadUserInfoForIframe);
+	    	});
+	    } ,
+	    dataType: "json"
+	});
+	return rtnb;
+}
+
+function showTemp(title,btnname,isCheckPhone){
+	 if(title=='') {title ='快速登录';}
+	 if(btnname==''){btnname='立即登录';}
+	 var btnstr ='<button id="btn" class="form_submit_btn" href="javascript:void(0);" onclick="checkPhone(\'/yuesao/order/submit\',true)" style="cursor:pointer;" >'+btnname+'</button>';
+	 if(!isCheckPhone){
+		 btnstr ='<button id="btn" class="form_submit_btn" href="javascript:void(0);" onclick="checkPhone(\'/yuesao/order/verifySubmit\',false)"  style="cursor:pointer;">'+btnname+'</button>'
+	 }
+	 var dialog = '<div class="login_dialog">'
+	       +'<div class="dialog_header">'
+	       +'<a class="dialog_colse"></a>'
+	       +'<h2 class="dialog_title">'+title+'</h2>'
+		     +'</div>'
+	       +'<div class="dialog_body">'
+	       +'<div class="login_form_tip">'
+	       +'<p class="form_err_tip" style="display:none;"></p>'
+	       +'<p class="form_msg_tip" style="display:none;">短信已发送，120秒后可重获验证码 </p>'
+	       +'</div>'
+	       +''
+	       +'<div class="control_input">'
+	       +'<input id="phoneIframe" name="phoneIframe" autocomplete="off"  type="text" value="请输入手机号">'
+	       +'</div>'
+	       if((userIpCount>=1)||(cookieCount>1)){
+
+		    //+'<i>验证码</i><span id="codetip"></span>'
+	       dialog  += '<div class="vcodeIpt">'
+			+'<input id="picCode" name="picCode" type="text" placeholder="请输入右侧验证码" onblur="check_code();" style="color: rgb(153, 153, 153);"/>'
+			+'<img src="/verifycode/" onclick="javascript:updatecode();" id="verifycode">'
+			+'<a href="javascript:updatecode();">看不清？</a>'
+			+'</div>'
+	       	}
+//		    dialog = dialog
+		 	dialog  += '<div class="control_input">'
+		    +'<div class="l"><input id="myCode" name="myCode" autocomplete="off" type="text" placeholder="请输入短信验证码"></div>'
+			+'<div class="r">'
+			+'<span><a href="javascript:void(0);" class="blue" id="getVerify" onclick="sendValicode()">获取验证码</a></span>'
+			+'<span style="display:none;">120秒后可重获验证码</span>'
+			+'</div>'
+		    +'</div>'
+		    + btnstr
+	       +''
+	       +'</div>'
+	       +'</div>';
+	 var layer1 = layer.open({
+			type: 1,
+		    title: false,
+		    closeBtn: false,
+		    shadeClose: false,
+		    area: ['455px'],
+		    content:  dialog
+		});
+		$('.dialog_colse').click(function(){
+			layer.close(layer1);
+		});
+}
+
+//获取验证码
+function sendValicode(){
+	mobile = $('#phoneIframe').val().replace('/(^\s*)|(\s*$)/g', "");
+	var picCode = $('#picCode').val();
+	if (((userIpCount >= 1) || (cookieCount > 1)) && !flag) {
+		$(".form_err_tip").html('图形验证码错误');
+		$(".form_err_tip").show();
+		return false;
+	}
+	if (!(/^1[3|4|5|8|7][0-9]\d{8}$/.test(mobile))){
+		$(".form_err_tip").html('请正确填写手机号码');
+		$(".form_err_tip").show();
+		return false;
+	}
+	var code = $('#myCode').val();
+	if (code != "") {
+		$('#myCode').val("");
+	}
+	//发送验证码
+	var url = "/sentMessage" ;
+	var param={"phone":mobile,"picCode":picCode};
+	$.ajax({
+		type: "POST",
+		data: param,
+		url: url,
+		cache: false,
+		async: true,
+		success: function(data1){
+			var json = $.parseJSON(data1.data)
+			cTime = 120;
+			if(json['msg']=='发送验证码成功'){
+				var codeSender = $("#getVerify");
+				timeoutID = self.setInterval("Timeload()", 1000);
+				$("#getVerify").removeAttr("onClick");
+			    $("#btn").attr("disabled",false);
+
+				$(".form_err_tip").hide();
+			    $(".form_msg_tip").html('短信已发送，120秒后可重获验证码 ');
+			    $(".form_msg_tip").show();
+			}else{
+				$(".form_msg_tip").hide();
+				$(".form_err_tip").html(json['msg']);
+				$(".form_err_tip").show();
+				updatecode();
+			}
+			userIpCount = json['userIpCount'];
+			cookieCount = json['cookieCount'];
+		}
+	});
+}
+
+function Timeload(){
+ 	var codeSender = $("#getVerify");
+ 	var mobile1 = '';
+ 	if($('#phoneIframe').val()) {
+ 		mobile1 = $('#phoneIframe').val().replace('/(^\s*)|(\s*$)/g', "");
+ 	}
+
+ 	if (cTime <= 0 )//判断秒数如果为0
+ 	{
+ 		$("#getVerify").removeClass("disable");
+ 		$("#getVerify").attr("onclick","sendValicode()");
+ 		timeoutID = window.clearInterval(timeoutID);
+ 		codeSender.html("获取验证码");
+ 		return;
+ 	}
+
+ 	//显示倒计时时间
+ 	 codeSender.addClass("countdown");
+ 	 codeSender.html("" + cTime + "秒");
+ 	 cTime--;//减少秒数
+
+ }
+
+//手机验证
+function checkPhone(url,flag){
+	var code =$('#myCode').val();//.replace('/(^\s*)|(\s*$)/g', "");
+	var mobile = $('#phoneIframe').val();//.replace('/(^\s*)|(\s*$)/g', "");
+	if (!(/^1[3|4|5|8|7][0-9]\d{8}$/.test(mobile))){
+ 		$(".form_err_tip").html('请正确填写手机号码');
+		$(".form_err_tip").show();
+ 		$("#getVerify").attr("onclick","sendValicode()");
+ 		return false;
+ 	}
+ 	if (!(/^\d{4}$/.test(code) || /^\d{6}$/.test(code)) ){
+ 		$(".form_err_tip").html('短信验证码不正确');
+ 		$(".form_msg_tip").hide();
+		$(".form_err_tip").show();
+ 		return false;
+ 	}
+	var urlSubmit = url;
+	var param =getYuesaoData(mobile);// {"phone":mobile,"securityCode":$('#myCode').val()};
+	$.ajax({
+		type: "POST",
+		data: param,
+		url: urlSubmit,
+		dataType: 'json',
+		success: function(result){
+			//data = eval("("+data+")");
+			$('#myCode').val("");
+	    	$("#getVerify").removeClass("disable");
+    		$("#getVerify").attr("onclick","sendValicode()");
+    		timeoutID = window.clearInterval(timeoutID);
+    		$("#getVerify").html("获取验证码");
+    		$("#btn").attr("disabled",false);
+    		if(result.code=='0'){//成功
+    			$("#phone").val($("#phoneIframe").val());
+    			setUserInfo();
+        		alert('提交成功');
+              	window.location.href='/yuesao/success/?respmsg='+result.message;
+        	}else if(result.code=='89'){//被人预订了
+        		$(".form_err_tip").html(result.message);
+        		$(".form_err_tip").show();
+            }else{
+            	$(".form_err_tip").html(result.message);
+        		$(".form_err_tip").show();
+            }
+		}
+	});
+}
+
+function bindCheckEvent(){
+	 var phoneMsg = '请输入手机号';
+	 var codeMsg ="请输入短信验证码";
+	 bindTargetEvent("phoneIframe",phoneMsg);
+	 bindTargetEvent("myCode",codeMsg);
+}
+
+function bindTargetEvent(id,defaultValue){
+	 var target = $("#"+id);
+	 target.focus(function(){
+
+		 if(target.val()==defaultValue){
+			 target.val('');
+		 }else{
+			 target.css("color","#000")
+		 }
+		 removeErrInfo();
+	 });
+	 target.blur(function(){
+		 if(target.val()==''){
+			 target.val(defaultValue);
+		 }
+	 })
+	 if(target.val()==defaultValue){
+		 target.css("color","#999");
+	 }else{
+		 target.css("color","#000")
+	 }
+}
+
+function removeErrInfo(){
+	 $(".form_err_tip").hide();
+	 $(".form_msg_tip").hide();
+}
+
+//设置天数值及样式
+function setDuration(day,obj){
+	$("#tians ul li").each(function (){
+		$(this).attr("class","");
+	})
+	$("#duration").val(day);
+	$(obj).attr("class","hover")
+}
+
+//将用户数据存进cookie，有效期7天
+function setUserInfo(){
+
+	$.cookie(userInfoCookieName, '', { path: '/',expires:-1,domain:'daojia.com' });
+
+	var svalue = "{phone:"+$("#tel").val()+",date:'"+$("#datetime").val()+"',day:"+$("#duration").val()+"}";
+
+	svalue = encodeURI(svalue);
+
+	setPhoneInfoCookie(svalue,userInfoCookieName);
+}
+//保存用户信息
+function setPhoneInfoCookie(cookieValue,cookieName){
+	$.cookie(cookieName, cookieValue, {path: '/',expires:7,domain:'daojia.com' });
+}
+
+//获取用户信息
+function getUserInfo(){
+	var v = $.cookie(userInfoCookieName);
+	return v;
+}
+
+//初始化用户信息
+function initUserInfo(){
+	var vvalue = getUserInfo();
+	if(vvalue!=null){
+		vvalue = decodeURI(vvalue);
+		var userInfo = eval("("+vvalue+")");
+		$("#tel").val(userInfo.phone);
+		var nowtime = new Date();
+		if(new Date(userInfo.date).getTime() < nowtime.getTime()){
+			var year = nowtime.getFullYear();
+			var month = nowtime.getMonth()+ 1 <10?"0"+(nowtime.getMonth() + 1):nowtime.getMonth() + 1;
+			var day = nowtime.getDate()<10?"0"+nowtime.getDate():nowtime.getDate();
+			var resulttime = year + "-"+month+"-"+day;
+			$("#datetime").val(resulttime);
+		}
+		else{
+			$("#datetime").val(userInfo.date);
+		}
+		$("#tians ul li").each(function (){
+			if(userInfo.day+"天"==$(this).html()){
+				$(this).attr("class","hover");
+			}else{
+				$(this).attr("class","");
+			}
+		})
+	}
+}
+
+//输入正确之后隐藏错误提示
+function hideError(id)
+{
+	$(id).hide();
+}
+
+//给登录弹窗赋上初值
+function loadUserInfoForIframe(){
+	var vvalue = $("#tel").val();
+	if(vvalue!=null){
+		$("#phoneIframe").val(vvalue);
+	}
+}
+
+//验证码
+function updatecode() {
+    var img = "/verifycode/?" + Math.random();
+    $('#verifycode').attr("src", img);
+}
+
+//验证码检测
+function check_code() {
+	var flagVal = false;
+    var code = $.trim($('#picCode').val());
+    if ($.trim(code) == '') {
+    	$(".form_msg_tip").hide();
+//    	$(".form_err_tip").hide();
+	    $(".form_err_tip").html('图形验证码错误 ');
+	    $(".form_err_tip").show();
+    	updatecode();
+        return false;
+    }
+    $.ajax({
+        type: "GET",
+        async: false,
+        cache: false,
+        dataType:"json",
+        url: "/checkcode/?code=" + code,
+        success: function(flag) {
+            if ("1" == flag.data) {
+                flagVal = true;
+                $(".form_msg_tip").hide();
+                $(".form_err_tip").hide();
+            } else {
+            	$(".form_msg_tip").hide();
+//            	$(".form_err_tip").hide();
+			    $(".form_err_tip").html('图形验证码错误');
+			    $(".form_err_tip").show();
+            	updatecode();
+                flagVal = false;
+            }
+
+        }
+
+    });
+    if(flagVal){
+
+    	flag = true;
+    }
+    return flagVal;
+}
+
+
+var get400Tel = function(){
+	var url = jd_server_path+"/api/get400Tel";
+	var hmsr = getQueryPara("hmsr");
+	if(hmsr =="" || hmsr==null){
+		hmsr = $("#hmsr").val();
+	}
+	var param={"url":location.href,"referer":document.referrer,"hmsr":hmsr};
+	$.jsonp({
+		type : "GET",
+		data: param,
+		url: url,
+		callbackParameter: "callback",
+		success: function(data){
+			if(data.success){
+				if(data.tel1.length!=10){
+					$('.tel-name').next().html("400-631-5858");
+					$('.icon-d').find('a').html("400-631-5858");
+				}else{
+					var tel = data.tel1.substring(0,3) + "-" + data.tel1.substring(3,6) + "-" + data.tel1.substring(6,10);
+					if($.trim(data.tel2)==''){
+						$('.tel-name').next().html(tel);
+						$('.icon-d').find('a').html(tel);
+					}else{
+						$('.tel-name').next().html(tel+"转"+data.tel2);
+						$('.icon-d').find('a').html(tel+"转"+data.tel2);
+					}
+				}
+			}else{
+				$('.tel-name').next().html("400-631-5858");
+				$('.icon-d').find('a').html("400-631-5858");
+			}
+		},
+		error: function(data){
+			$('.tel-name').next().html("400-631-5858");
+			$('.icon-d').find('a').html("400-631-5858");
+		}
+	});
+}
+
+var getQueryPara=function(name) {
+    var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
+    var r = window.location.search.substr(1).match(reg);
+    if (r != null) return unescape(r[2]); return null;
+}
+
+var trackAndSave=function(trackParam,saveParam,type){
+	var url = jd_server_path+"/api/saveConsultationInfo/";
+	trackClick(trackParam);
+	if(type=="1"){
+		window.location.href=url+saveParam;
+	}
+	if(type=="2"){
+
+		$.jsonp({
+			type : "GET",
+			data: saveParam,
+			url: url,
+			callbackParameter: "callback",
+			success: function(data){
+
+			},
+			error: function(data){
+			}
+		});
+	}
+}
