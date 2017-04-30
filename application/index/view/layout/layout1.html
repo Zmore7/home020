@@ -23,19 +23,11 @@
             </a>
         </div>
         <ul class="nav-list cls">
-            <a href="{:url('Index/Index/cate_list')}">
-                <li class="nav-item">家政</li>
+            {volist name="catelist" id="vo"}
+            <a href="{:url('Index/Index/cate_list')}?cat_id={$vo.cat_id}">
+                <li class="nav-item">{$vo.cat_name}</li>
             </a>
-            <a href="#">
-                <li class="nav-item">月嫂</li>
-            </a>
-            <a href="#">
-                <li class="nav-item">育儿嫂</li>
-
-            </a>
-            <a href="#">
-                <li class="nav-item">保姆</li>
-            </a>
+            {/volist}
             {if condition="$user_name==NULL"}
             {if condition="$aunt_name==NULL"}
             <a href="#">

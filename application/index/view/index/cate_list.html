@@ -6,64 +6,28 @@
             </div>
         </div>
         <div class="clean">
-            <h2 class="title">家政保洁</h2>
+            <h2 class="title">{$maincatedata.cat_name}</h2>
             <ul class="clean-list">
+                {volist name="catedata" id="vo"}
                 <li class="clean-item">
                     <img src="/__PUBLIC_FONT__/img/adv/clean-1.jpg" height="160" width="290"/>
                     <div class="clean-word">
                     <span class="name">
-                      家庭保姆
+                      {$vo.cat_name}
                     </span>
                         <span class="desc">
-                        <marquee direction="left" scrollamount="6" >严格筛选，系统培训，标准化流程，家庭日常清洁最优之选</marquee>
+                        <marquee direction="left" scrollamount="6" >{$vo.cat_desc}</marquee>
                     </span>
                         <span class="payment">
-                     <red> 6800元</red>||整点限量<red>一元</red>秒杀
+                     {$vo.cat_shopmsg}
                     </span>
                         <a class="show-more">
-                            <button> 查看详情</button>
+                            <button>我要预约！</button>
                         </a>
                     </div>
                 </li>
-                <li class="clean-item">
-                    <img src="/__PUBLIC_FONT__/img/adv/clean-2.jpg" height="160" width="290"/>
-                    <div class="clean-word">
-                    <span class="name">
-                      育婴保姆
-                    </span>
-                        <span class="desc">
-                        <marquee direction="left" scrollamount="6" >专业育婴呵护宝宝快乐成长，科学膳食宝宝才健康</marquee>
+                {/volist}
 
-                    </span>
-                        <span class="payment">
-                      <red>1元</red>起抢购
-                    </span>
-                        <a class="show-more">
-                            <button>
-                                查看详情
-                            </button>
-                        </a>
-                    </div>
-                </li>
-                <li class="clean-item">
-                    <img src="/__PUBLIC_FONT__/img/adv/clean-3.jpg" height="160" width="290"/>
-                    <div class="clean-word">
-                      <span class="name">
-                      月嫂服务
-                    </span>
-                        <span class="desc">
-                        <marquee direction="left" scrollamount="6" >严格培训，标准化护理流程，为新妈妈和宝宝提供更多保障</marquee>
-                    </span>
-                        <span class="payment">
-                      <red>1元</red>起抢购
-                    </span>
-                        <a class="show-more">
-                            <button>
-                                查看详情
-                            </button>
-                        </a>
-                    </div>
-                </li>
             </ul>
         </div>
     </div>

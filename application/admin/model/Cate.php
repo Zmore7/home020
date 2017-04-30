@@ -58,7 +58,7 @@ class Cate extends Model
     }
     public function getCateDetail($id){
         $db = Db::name('category')
-            ->where('parent_id','=',$id)
+            ->where('cat_id','=',$id)
             ->select();
 
         return $db;
@@ -81,5 +81,11 @@ class Cate extends Model
             ->select();
         //var_dump($db);
 
+    }
+    public function getSecondCateDetail($parent_id){
+        $db = Db::name('category')
+            ->where('parent_id','=',$parent_id)
+            ->select();
+        return $db;
     }
 }

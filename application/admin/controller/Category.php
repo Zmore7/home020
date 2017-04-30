@@ -62,7 +62,6 @@ class Category extends Base
     }
     public function cate_mod(){
         $Cate = new Cate();
-
             if(input('post.')){
                 //var_dump(input('post.'));
                 $data = input('post.');
