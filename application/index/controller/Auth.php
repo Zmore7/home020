@@ -40,17 +40,18 @@ class Auth extends Controller
         //var_dump($db);
         //var_dump($password);
 
-
-        if ($db) {
             if ($db['password'] == $password) {
                 //这是设置session的
                 Session::set('aunt_username', $username);
-
-                return $this->success('阿姨登陆成功', 'index/index');
+                if($mima==NULL){
+                    return $this->error('密码错误');
+                }else{
+                    return $this->success('阿姨登陆成功', 'index/index');
+                }
             } else {
                 return $this->error('密码错误');
             }
-        }
+
 
     }
     return $this->fetch('aunt_login');
@@ -77,20 +78,59 @@ class Auth extends Controller
             //var_dump($db);
             //var_dump($password);
 
-
-            if ($db) {
                 if ($db['password'] == $password) {
                     //这是设置session的
                     Session::set('user_username', $username);
-
-                    return $this->success('用户登陆成功', 'index/index');
+                    if($mima==""){
+                        return $this->error('密码错误');
+                    }else{
+                        return $this->success('用户登陆成功', 'index/index');
+                    }
                 } else {
                     return $this->error('密码错误');
                 }
-            }
+
 
         }
-        return $this->fetch('user_login');
+        //return $this->fetch('user_login');
+    }
+
+    public function admin_login()//用户登录
+    {
+
+        if (request()->isPost()) {
+            $mima = input('password');
+            $username = input('username');
+            $password = md5($mima);
+
+            //验证
+            $validate = validate('User');
+            //$result = $this->validate($_POST, 'User');
+            $result = $validate->scene('login')->check($_POST);
+            if (true !== $result) {
+                // 验证失败 输出错误信息
+                return $this->error($result);
+            }
+
+            $db = \think\Db::name('admin')->where('username', '=', $username)->find();
+            //var_dump($db);
+            //var_dump($password);
+
+            if ($db['password'] == $password) {
+                //这是设置session的
+                Session::set('username', $username);
+                if($mima==""){
+                    return $this->error('密码错误');
+                }else{
+                    return $this->success('管理员用户登陆成功', 'Admin/index/index');
+                }
+            } else {
+                return $this->error('密码错误');
+            }
+
+
+        }
+        //return $this->fetch('user_login');
     }
 
 
