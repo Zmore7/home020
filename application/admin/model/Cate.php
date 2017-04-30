@@ -82,10 +82,18 @@ class Cate extends Model
         //var_dump($db);
 
     }
-    public function getSecondCateDetail($parent_id){
-        $db = Db::name('category')
-            ->where('parent_id','=',$parent_id)
-            ->select();
-        return $db;
+    public function getSecondCateDetail($parent_id){//9999代表全部查询次级分类
+        if($parent_id!=9999){
+            $db = Db::name('category')
+                ->where('parent_id','=',$parent_id)
+                ->select();
+            return $db;
+        }else{
+            $db = Db::name('category')
+                ->where('cat_level','=',1)
+                ->select();
+            return $db;
+        }
+
     }
 }

@@ -45,6 +45,8 @@ class User extends Model
         if($db==NULL){
             return 0;
         }else{
+            $purpose_num = count($data['purpose']);
+            $data['purpose'] = implode(",",$data['purpose']);
             $db = Db::name('aunt')
                 ->where('id','=',$id)
                 ->update($data);
@@ -132,6 +134,17 @@ class User extends Model
         $data['created_time'] = date("Y:m:d H:i:s");
         $data['password'] = md5($data['password']);
         $db = Db::name('admin')
+            ->insert($data);
+        return $db;
+    }
+    public function addAunt($data){
+        $data['created_time'] = date("Y:m:d H:i:s");
+        $data['password'] = md5($data['password']);
+
+        $purpose_num = count($data['purpose']);
+        $data['purpose'] = implode(",",$data['purpose']);
+
+        $db = Db::name('aunt')
             ->insert($data);
         return $db;
     }

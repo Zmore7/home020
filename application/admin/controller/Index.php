@@ -8,6 +8,7 @@ use think\Controller;
 
 use think\Db;
 use app\admin\model\User;
+use app\admin\model\Cate;
 use app\admin\model\Upload;
 class Index extends Base
 {
@@ -71,11 +72,23 @@ class Index extends Base
     }
     public function aunt_mod(){
         $User = new User();
+        $Cate = new Cate();
         if(!input('post.')){
             if(!input('get.aunt_id')){
                 return $this -> error('非法操作');
             }
+            $data = $Cate -> getSecondCateDetail(9999);
+            $count = count($data);
+            $cate_sec = array();
+            for($i = 0;$i < $count;$i++){
+                $cate_sec[$i] = $data[$i]['cat_id'];
+            }
+
+            //var_dump($cate_sec);
+            $this -> assign('cate_sec',$cate_sec);
+            $this -> assign('catedata_s',$data);
             $aunt_data =$User ->getAuntDetail(input('get.aunt_id'));
+            //$aunt_data[0]['purpose'] = explode(',',$aunt_data[0]['purpose']);//转成数组方便前端显示
             $this -> view -> engine->layout('layout/admin_layout');//引入后端模板文件：layout/admin_layout
             $this -> assign('auntdetail',$aunt_data[0]);
             return $this->fetch('mod_aunt');
@@ -90,6 +103,27 @@ class Index extends Base
             }else{
                 return $this->error('非法操作');
             }
+        }
+    }
+    public function aunt_add(){//添加阿姨
+        $User = new User();
+        $Cate = new Cate();
+        if(input('post.')){
+
+            $data = input('post.');
+            $rst = $User -> addAunt($data);
+            if($rst){
+                return $this -> success("添加阿姨成功",'Admin/Index/aunt_list');
+            }else{
+                return $this -> error('添加阿姨失败','Admin/Index/aunt_list');
+            }
+
+            //var_dump(input('post.'));
+        }else{
+            $data = $Cate -> getSecondCateDetail(9999);
+            $this -> assign('catedata_s',$data);
+            $this -> view -> engine->layout('layout/admin_layout');//引入后端模板文件：layout/admin_layout
+            return $this->fetch('add_aunt');
         }
     }
 }
