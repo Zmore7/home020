@@ -149,6 +149,9 @@ class Auth extends Controller
                 'name' => input('name'),
                 'phone' => input('phone'),
                 'salary' => input('salary'),
+                'learn'=>input('learn'),
+                'place'=>input('place'),
+                'experience'=>input('experience'),
             ];
 
             //验证内容

@@ -37,7 +37,6 @@
     <div class="row-fluid login-wrapper">
         <div class="box">
 
-            这里是阿姨注册的部分！
             <form  method="post" action="signup" enctype="multipart/form-data">
             <div class="content-wrap">
                 <h6>Sign Up</h6>
@@ -46,6 +45,37 @@
                 <input class="span12" name="phone" type="text" placeholder="手机号码" />
                 <input class="span12" name="name" type="text" placeholder="姓名" />
                 <input class="span12" name="age" type="text" placeholder="年龄" />
+                <div class="col-sm-4">
+                <span style="font-size: 18px;">籍贯：</span>
+                <select class="span9" name="place" >
+                    <option value="1">东北</option>
+                    <option value="2">华北</option>
+                    <option value="3">华东</option>
+                    <option value="4">西南</option>
+                    <option value="5">西北</option>
+                    <option value="6">南方</option>
+
+                </select></div>
+                <div class="col-sm-4">
+                <span style="font-size: 18px;">学历：</span>
+                <select class="span9" name="learn" >
+                    <option value="1">小学</option>
+                    <option value="2">初中</option>
+                    <option value="3">高中</option>
+                    <option value="4">大专以上</option>
+                </select></div>
+                <div class="col-sm-4">
+                <span style="font-size: 18px;">经验：</span>
+                <select class="span9" name="experience" >
+                    <option value="1">新手</option>
+                    <option value="2">熟手</option>
+                    <option value="3">资深</option>
+                    <option value="4">有涉外经验</option>
+                </select></div>
+
+
+
+
                 <input class="span12" name="address" type="text" placeholder="家庭地址" />
                 <input class="span12" name="salary" type="text" placeholder="期望薪资" />
                 <input class="span12" name="pass1" type="password" placeholder="密码" />

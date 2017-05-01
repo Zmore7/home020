@@ -31,9 +31,6 @@ class Index extends Base
         }
 
     }
-    public function wrisess(){
-        $data = input('session.');
-        var_dump($data);
-    }
+
 
 }
