@@ -1,0 +1,126 @@
+<div class="content">
+
+    <div class="container-fluid">
+        <div id="pad-wrapper" class="users-list">
+            <div class="row-fluid header">
+                <h3>经纪人列表</h3>
+                <div class="span10 pull-right">
+                    <input type="text" class="span5 search" placeholder="Type a user's name..." />
+
+                    <!-- custom popup filter -->
+                    <!-- styles are located in css/elements.css -->
+                    <!-- script that enables this dropdown is located in js/theme.js -->
+                    <div class="ui-dropdown">
+                        <div class="head" data-toggle="tooltip" title="Click me!">
+                            Filter users
+                            <i class="arrow-down"></i>
+                        </div>
+                        <div class="dialog">
+                            <div class="pointer">
+                                <div class="arrow"></div>
+                                <div class="arrow_border"></div>
+                            </div>
+                            <div class="body">
+                                <p class="title">
+                                    Show users where:
+                                </p>
+                                <div class="form">
+                                    <select>
+                                        <option />姓名
+                                        <option />年龄
+                                        <option />地址
+                                        <option />Signed up
+                                        <option />Last seen
+                                    </select>
+                                    <select>
+                                        <option />is equal to
+                                        <option />is not equal to
+                                        <option />is greater than
+                                        <option />starts with
+                                        <option />contains
+                                    </select>
+                                    <input type="text" />
+                                    <a class="btn-flat small">Add filter</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <a href="{:url('Admin/Middleman/add_middleman')}" class="btn-flat success pull-right">
+                        <span>&#43;</span>
+                        增加新经纪人
+                    </a>
+                </div>
+            </div>
+
+            <!-- Users table -->
+            <div class="row-fluid table">
+                <table class="table table-hover">
+                    <thead>
+                    <tr>
+                        <th class="span4 sortable">
+                            姓名
+                        </th>
+                        <th class="span3 sortable">
+                            <span class="line"></span>佣金比例
+                        </th>
+                        <th class="span3 sortable">
+                            <span class="line"></span>雇员数量
+                        </th>
+
+
+                        <th class="span3 sortable">
+                            <span class="line"></span>性别
+                        </th>
+                        <th class="span3 sortable align-right">
+                            <span class="line"></span>操作
+                        </th>
+
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <!-- row -->
+                    {volist name="userlist" id="vo"}
+                    <tr class="first">
+                        <td>
+                            <a href="{:url('Admin/Middleman/user_detail')}?mid_id={$vo.id}">{$vo.name}</a>
+                        </td>
+                        <td>
+                            {$vo.employee_cent}
+                        </td>
+                        <td>
+                            {$vo.employee_num}
+                        </td>
+
+
+                        <td class="">
+                            {$vo.sex}
+                        </td>
+                        <td nowrap="" class="align-right" >
+                            <a href="{:url('Admin/Middleman/user_mod')}?mid_id={$vo.id}">修改</a>
+                            <a href="{:url('Admin/Middleman/user_delete')}?mid_id={$vo.id}">删除</a>
+                        </td>
+
+                    </tr>
+                    {/volist}
+
+
+
+                    </tbody>
+                </table>
+            </div>
+            <div class="pagination pull-right">
+                <ul>
+                    <li><a href="#">&#8249;</a></li>
+                    <li><a class="active" href="#">1</a></li>
+                    <li><a href="#">2</a></li>
+                    <li><a href="#">3</a></li>
+                    <li><a href="#">4</a></li>
+                    <li><a href="#">5</a></li>
+                    <li><a href="#">&#8250;</a></li>
+                </ul>
+            </div>
+            <!-- end users table -->
+        </div>
+    </div>
+</div>

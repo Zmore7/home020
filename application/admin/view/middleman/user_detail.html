@@ -1,0 +1,110 @@
+<div class="content">
+
+    <div class="container-fluid">
+        <div id="pad-wrapper" class="user-profile">
+            <!-- header -->
+            <div class="row-fluid header">
+                <div class="span8">
+                    <img src="img/contact-profile.png" class="avatar img-circle" />
+                    <h3 class="name">{$userdetail.name}</h3>
+                    <span class="area"></span>
+                </div>
+                <a class="btn-flat icon pull-right delete-user" data-toggle="tooltip" title="Delete user" data-placement="top">
+                    <i class="icon-trash"></i>
+                </a>
+                <a class="btn-flat icon large pull-right edit">
+                    Edit this person
+                </a>
+            </div>
+
+            <div class="row-fluid profile">
+                <!-- bio, new note & orders column -->
+                <div class="span9 bio">
+                    <div class="profile-box">
+                        <!-- biography -->
+
+                        <br />
+                        {eq name="userdetail.sex" value="0"}他{/eq}
+                        {eq name="userdetail.sex" value="1"}她{/eq}
+                        的雇员
+                        <a href="{:url('Admin/Middleman/add_employee')}}">增加雇员</a>
+                        <!-- recent orders table -->
+                        <table class="table table-hover">
+                            <thead>
+                            <tr>
+                                <th class="span2">
+                                    姓名
+                                </th>
+                                <th class="span3">
+                                    <span class="line"></span>
+                                    从事分类
+                                </th>
+                                <th class="span3">
+                                    <span class="line"></span>
+                                    服务次数
+                                </th>
+                                <th class="span3">
+                                    <span class="line"></span>
+                                    操作
+                                </th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <!-- row -->
+                            {volist name="employlist" id="voo"}
+                            <tr class="first">
+                                <td>
+                                    <a href="#">{$voo.name}</a>
+                                </td>
+                                <td>
+                                    {volist name="voo.cat_name_arr" id="voa"}
+                                    {$voa[0]['cat_name']}
+                                    {/volist}
+                                </td>
+                                <td>
+                                    {$voo.serviced_time}
+                                </td>
+                                <td>
+                                    <a href="{:url('Admin/Index/aunt_mod')}?aunt_id={$voo.id}">修改</a>
+                                    <a href="{:url('Admin/Index/aunt_delete')}?aunt_id={$voo.id}">删除</a>
+                                </td>
+                            </tr>
+                            {/volist}
+                            </tbody>
+                        </table>
+                        <!-- new comment form -->
+                    </div>
+                </div>
+
+                <!-- side address column -->
+                <div class="span3 address pull-right">
+                    <h6>联系方式</h6>
+                    <ul>
+                        <li>地址：{$userdetail.address}</li>
+                        <li class="ico-li">
+                            <i class="ico-phone"></i>
+                            电话：{$userdetail.phone}
+                        </li>
+                        <li class="ico-li">
+                            <i class="ico-mail"></i>
+                            <a href="#">电子邮件：{$userdetail.email}</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="span3 address pull-right">
+                    <h6>自我介绍</h6>
+                    {$userdetail.selfdesc}
+                </div>
+                <div class="span3 address pull-right">
+                    <h6>雇员情况</h6>
+                    雇员数量：{$userdetail.employee_num}
+                    <br/>
+                    业务分类：
+                    {volist name="catelist" id="vo"}
+                    {$vo.0.cat_name}
+                    {/volist}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
