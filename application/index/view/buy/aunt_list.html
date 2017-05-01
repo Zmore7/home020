@@ -6,23 +6,36 @@
             </div>
         </div>
         <div class="clean">
-            <h2 class="title">{$maincatedata.cat_name}</h2>
+            <h2 class="title">{$maincatedata.0.cat_name}分类下的阿姨</h2>
             <ul class="clean-list">
-                {volist name="catedata" id="vo"}
+
+                {volist name="auntlist" id="vo"}
                 <li class="clean-item">
                     <img src="/__PUBLIC_FONT__/img/adv/clean-1.jpg" height="160" width="290"/>
                     <div class="clean-word">
                     <span class="name">
-                      {$vo.cat_name}
+                      {$vo.name}
                     </span>
                         <span class="desc">
-                        <marquee direction="left" scrollamount="6" >{$vo.cat_desc}</marquee>
+                        <marquee direction="left" scrollamount="6" >服务范围：
+                            {volist name="vo.purpose_str_arr" id="voo"}
+                            {$voo.0.cat_name}
+                            {/volist}
+                            &nbsp;|&nbsp;
+                            性别：
+                            {if condition="$vo.sex==0"}
+                            男
+                            {/if}
+                            {if condition="$vo.sex==1"}
+                            女
+                            {/if}
+                        </marquee>
                     </span>
                         <span class="payment">
-                     {$vo.cat_shopmsg}
+                     {$vo.desc}
                     </span>
                         <a class="show-more">
-                            <a href="{:url('Index/Buy/buylist')}?cat_id={$vo.cat_id}"><button >我要预约！</button></a>
+                            <button>点击预约</button>
                         </a>
                     </div>
                 </li>

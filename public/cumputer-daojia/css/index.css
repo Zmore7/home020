@@ -8,11 +8,12 @@
 .header .logo img {
   display: inline-block;
   float: left;
-  margin-top:.8%;
+  margin-top: 0.8%;
 }
 .header .nav {
   flex: 1;
-  height:inherit;
+  align-items: center;
+  height: inherit;
 }
 .header .nav .nav-list {
   text-align: center;
@@ -20,17 +21,25 @@
   font-weight: bold;
 }
 .header .nav .nav-list .nav-item {
-  color: dimgrey;
-  font-size: .8rem;
+  color: #696969;
+  font-size: 0.8rem;
   display: inline-block;
   height: 114px;
-  line-height:114px;
-  width: calc(100% /8);
+  line-height: 114px;
+  width: calc(100% / 12);
+}
+.header .nav .nav-list .nav-input {
+  display: inline-block;
+  margin-left: 1%;
+  width: calc(100% / 11);
+  padding-left: 2%;
+  height: 25px;
+  border-radius: 5px;
+  background-image: url("../img/icon/sousuo.png");
+  background-repeat: no-repeat;
 }
 .header .nav .nav-list .nav-item:hover {
-  height: 80px;
-  line-height: 80px;
-  background-color: #333;
+  color: #f00;
 }
 .container {
   width: 1200px;
@@ -43,7 +52,7 @@
   margin: 0 auto;
 }
 .container .content .banner .boxID .pic {
-  width: inherit;
+  width: 60%;
   height: 340px;
 }
 .container .content .serve {

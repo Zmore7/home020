@@ -60,7 +60,12 @@ class Cate extends Model
         $db = Db::name('category')
             ->where('cat_id','=',$id)
             ->select();
-
+        return $db;
+    }
+    public function getFatherCateDetail($id){
+        $db = Db::name('category')
+            ->where('parent_id','=',$id)
+            ->select();
         return $db;
     }
     public function editCate($id,$data){
