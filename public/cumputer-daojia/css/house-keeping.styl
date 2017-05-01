@@ -1,60 +1,91 @@
-body{
+body {
   background white
-
-  .nav{
-    display flex
-    align-items inherit
-
-  }
-.clean {
-  .title {
-    font-size 1.5em
-    margin 1em 0
-    strong {
-      color rgba(255, 0, 0, 0.8)
-      padding-right 1em
+  .nav {
+    flex 1
+    align-items center
+    height inherit
+    .nav-list {
+      text-align center
+      font-size 0
+      font-weight bold
+      .nav-item {
+        color: dimgrey;
+        font-size: .8rem;
+        display: inline-block;
+        height: 114px;
+        line-height: 114px;
+        width: calc(100% / 12);
+      //float left
+      }
+      .nav-input {
+        display inline-block
+        margin-left 1%
+        width calc(100% / 11)
+        padding-left 2%
+        height 25px
+        border-radius 5px
+        background-image url("../img/icon/sousuo.png")
+        background-repeat no-repeat
+      }
+      .nav-item:hover {
+        color: red;
+      }
     }
+
   }
-  .clean-list {
-    font-size 0
-    text-align center
-    display flex
-    .clean-item {
-      background #F5F5F5
-      padding 0 4% 5% 4%
-      width 28%
-      flex 1
-      font-size 1rem
-      img {
+
+  .clean {
+    .title {
+      font-size 1.5em
+      margin 1em 0
+      strong {
+        color rgba(255, 0, 0, 0.8)
+        padding-right 1em
+      }
+    }
+    .clean-list {
+      font-size 0
+      text-align left
+    //display flex
+      .clean-item {
+        background #F5F5F5
+        display inline-block
+        text-align center
+        box-sizing border-box
+        padding 0 4% 5% 4%
+        width 33%
+      //flex 1
+        font-size 1rem
+        img {
           width 100%
-       }
-      .clean-word
-      {
-        padding 30px 0
-        background white
-        span {
-          display block
-          margin-bottom 10px
-          red{
-            color red
+        }
+        .clean-word {
+          padding 30px 0
+          background white
+          span {
+            display block
+            margin-bottom 10px
+            red {
+              color red
+            }
+          }
+          button {
+            width 200px
+            height 40px
+            margin-top 20px
+          }
+        // 写一下具体的样式呗
+          .name {
+            font-size 1.5rem
+          }
+          .desc {
+            color #999999
+            font-size 1rem
+            text-align start
           }
         }
-        button {
-         width 200px
-         height 40px
-         margin-top 20px
-        }
-      // 写一下具体的样式呗
-        .name {
-          font-size 1.5rem
-        }
-        .desc{
-          color #999999
-          font-size 1rem
-          text-align start
-        }
-      }
 
+      }
     }
   }
-}}
+}
