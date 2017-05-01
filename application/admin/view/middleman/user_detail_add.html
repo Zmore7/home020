@@ -6,7 +6,8 @@
             <div class="row-fluid header">
                 <div class="span8">
                     <img src="img/contact-profile.png" class="avatar img-circle" />
-                    <h3 class="name">{$userdetail.name}</h3>
+                    <h3 class="name">{$userdetail.name}</h3><br/>
+                    <h3 class="name">添加新雇员</h3>
                     <span class="area"></span>
                 </div>
                 <a href="{:url('Admin/Middleman/user_delete')}?mid_id={$userdetail.id}" class="btn-flat icon pull-right delete-user" data-toggle="tooltip" title="Delete user" data-placement="top">
@@ -22,12 +23,11 @@
                 <div class="span9 bio">
                     <div class="profile-box">
                         <!-- biography -->
-
                         <br />
-                        {eq name="userdetail.sex" value="0"}他{/eq}
-                        {eq name="userdetail.sex" value="1"}她{/eq}
-                        的雇员
-                        <a href="{:url('Admin/Middleman/add_employee')}?mid_id={$userdetail.id}">增加雇员</a>
+                        申请加入你的
+                        {eq name="userdetail.sex" value="0"}你{/eq}
+                        {eq name="userdetail.sex" value="1"}妳{/eq}
+                        成员
                         <!-- recent orders table -->
                         <table class="table table-hover">
                             <thead>
@@ -51,22 +51,22 @@
                             </thead>
                             <tbody>
                             <!-- row -->
-                            {volist name="employlist" id="voo"}
+                            {volist name="apply_employlist" id="vooo"}
                             <tr class="first">
                                 <td>
-                                    <a href="{:url('Admin/Aunt/aunt_detail')}?aunt_id={$voo.id}">{$voo.name}</a>
+                                    <a href="{:url('Admin/Aunt/aunt_detail')}?aunt_id={$vooo.id}">{$vooo.name}</a>
                                 </td>
                                 <td>
-                                    {volist name="voo.cat_name_arr" id="voa"}
-                                    {$voa[0]['cat_name']}
+                                    {volist name="vooo.cat_name_arr" id="vob"}
+                                    {$vob[0]['cat_name']}
                                     {/volist}
                                 </td>
                                 <td>
-                                    {$voo.serviced_time}
+                                    {$vooo.serviced_time}
                                 </td>
                                 <td>
-
-                                    <a href="{:url('Admin/Middleman/apply_deled')}?aunt_id={$voo.id}&mid={$userdetail.id}">删除</a>
+                                    <a href="{:url('Admin/Middleman/apply_accept')}?aunt_id={$vooo.id}&mid={$userdetail.id}">接受</a>
+                                    <a href="{:url('Admin/Middleman/apply_denied')}?aunt_id={$vooo.id}&mid={$userdetail.id}">拒绝</a>
                                 </td>
                             </tr>
                             {/volist}
@@ -75,7 +75,7 @@
                         <!-- new comment form -->
                     </div>
                 </div>
-
+            </div>
                 <!-- side address column -->
                 <div class="span3 address pull-right">
                     <h6>联系方式</h6>

@@ -94,7 +94,29 @@ class Middleman extends Base
         }
     }
     public function add_employee(){
+        $this->view->engine->layout('layout/admin_layout');
+        //引入后端模板文件：layout/admin_layout
+        $User = new User();
 
+        $userid = input('get.mid_id');
+        if ($userid != NULL) {
+            $user_data = $User->getMiddlemanDetail($userid);
+            $employee_list = $User -> getMiddlemanEmployee($userid);
+            $applying_employee_list = $User -> getMiddlemanAppliedEmployee($userid);
+            //var_dump($employee_list);
+            if ($user_data != NULL) {
+                $this->assign('userdetail', $user_data[0]);
+                $this->assign('catelist', $user_data['category_str_arr']);
+                $this->assign('employlist',$employee_list);
+                $this->assign('apply_employlist',$applying_employee_list);
+                //var_dump($user_data['category_str_arr']);
+                return $this->fetch('user_detail_add');
+            } else {
+                $this->error('非法操作');//防止查不存在的用户
+            }
+        } else {
+            $this->error('非法操作');//避免id为空
+        }
     }
     public function add_middleman(){
         $User = new User();
@@ -112,7 +134,47 @@ class Middleman extends Base
                 $this -> assign('secondlist',$cate_list);
                 return $this->fetch('new_user');
             }
-
     }
-
+    public function apply_accept(){
+        $User = new User();
+        $Cate = new Cate();
+        if(input('get.aunt_id')){
+            $rst = $User -> accept_employee(input('get.aunt_id'),input('get.mid'),1);
+            if ($rst) {
+                return $this->success('处理成功', 'Admin/Middleman/user_list');
+            } else {
+                return $this->error('处理失败');
+            }
+        }else{
+            $this->error('非法操作');
+        }
+    }
+    public function apply_denied(){
+        $User = new User();
+        $Cate = new Cate();
+        if(input('get.aunt_id')){
+            $rst = $User -> accept_employee(input('get.aunt_id'),input('get.mid'),0);
+            if ($rst) {
+                return $this->success('处理成功', 'Admin/Middleman/user_list');
+            } else {
+                return $this->error('处理失败');
+            }
+        }else{
+            $this->error('非法操作');
+        }
+    }
+    public function apply_deled(){
+        $User = new User();
+        $Cate = new Cate();
+        if(input('get.aunt_id')){
+            $rst = $User -> accept_employee(input('get.aunt_id'),input('get.mid'),2);
+            if ($rst) {
+                return $this->success('处理成功', 'Admin/Middleman/user_list');
+            } else {
+                return $this->error('处理失败');
+            }
+        }else{
+            $this->error('非法操作');
+        }
+    }
 }

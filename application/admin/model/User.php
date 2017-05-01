@@ -199,12 +199,10 @@ class User extends Model
                 //var_dump($temp);
                 $category_arr[$j] = $temp;
                 //var_dump($category_arr);
-
             }
             $db[$i]['cat_name_arr'] = $category_arr;
             //var_dump($db[$i]['cat_name_arr']);
         }
-
         return $db;
     }
     public function delMiddleman($id){
@@ -241,6 +239,59 @@ class User extends Model
             ->insert($data);
         return $db;
     }
-
+    public function getMiddlemanAppliedEmployee($mid){
+        $db = Db::name('aunt')
+            ->where('apply_mid','=',$mid)
+            ->select();
+        $employee_num = count($db);
+        $category_arr_str = "";
+        for($i = 0;$i < $employee_num;$i++){
+            $category_arr = explode(',',$db[$i]['purpose']);
+            $purpose_num = count($category_arr);
+            for($j = 0;$j < $purpose_num;$j++){
+                $temp = Db::name('category')->field('cat_name')->where('cat_id','=',$category_arr[$j])->select();
+                //var_dump($temp);
+                $category_arr[$j] = $temp;
+                //var_dump($category_arr);
+            }
+            $db[$i]['cat_name_arr'] = $category_arr;
+            //var_dump($db[$i]['cat_name_arr']);
+        }
+        return $db;
+    }
+    public function accept_employee($id,$mid,$accept){//accept=1为接受、0为不接受、2为删除
+        if($accept==1){
+            $db = Db::name('aunt')
+                ->where('id','=',$id)
+                ->update(['mid'=>$mid,'apply_mid'=>0]);
+            $emloyee_num = Db::name('middleman')
+                ->field('employee_num')
+                ->where('id','=',$mid)
+                ->select();
+            $db = Db::name('middleman')
+                ->where('id','=',$mid)
+                ->update(['employee_num' => ($emloyee_num[0]["employee_num"]+1)]);
+            return $db;
+        }else if($accept==0){
+            $db = Db::name('aunt')
+                ->where('id','=',$id)
+                ->update(['mid'=>0,'apply_mid'=>3]);//3代表被拒绝
+            return $db;
+        }else if($accept==2){
+            $db = Db::name('aunt')
+                ->where('id','=',$id)
+                ->update(['mid'=>0,'apply_mid'=>0]);
+            $emloyee_num = Db::name('middleman')
+                ->field('employee_num')
+                ->where('id','=',$mid)
+                ->select();
+            $db = Db::name('middleman')
+                ->where('id','=',$mid)
+                ->update(['employee_num' => ($emloyee_num[0]["employee_num"]-1)]);
+            return $db;
+        }else{
+            return 0;
+        }
+    }
 
 }
