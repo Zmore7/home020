@@ -23,6 +23,18 @@ class User extends Model
         $db = Db::name('aunt')
             ->where('id','=',$id)
             ->select();
+
+        $purpose_arr = explode(',',$db[0]['purpose']);
+        $purpose_num = count($purpose_arr);
+        for($i = 0;$i < $purpose_num;$i++){
+            $temp = Db::name('category')
+                ->field('cat_name')
+                ->where('cat_id','=',$purpose_arr[$i])
+                ->select();
+            //var_dump($temp);
+            $purpose_arr[$i] = $temp[0]['cat_name'];
+        }
+        $db['purpose_arr'] = $purpose_arr;
         return $db;
     }
     public function delAunt($id){

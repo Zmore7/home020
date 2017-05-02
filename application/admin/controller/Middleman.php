@@ -177,4 +177,8 @@ class Middleman extends Base
             $this->error('非法操作');
         }
     }
+    public function seekmiddle(){
+        //todo 添加寻找经纪人操作
+
+    }
 }

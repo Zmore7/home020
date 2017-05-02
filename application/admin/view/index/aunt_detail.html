@@ -24,14 +24,24 @@
                         <!-- biography -->
                         <div class="span12 section">
                             <h6>
-                                {eq name='auntdetail.cid' value='1'}[月嫂]{/eq}
-                                {eq name='auntdetail.cid' value='2'}[育儿嫂]{/eq}
-                                {eq name='auntdetail.cid' value='3'}[家务员]{/eq}
-                                {eq name='auntdetail.cid' value='4'}[小时工]{/eq}
-                                {eq name='auntdetail.cid' value='5'}[养老保姆]{/eq}
+
                             </h6>
-                            <p>{$auntdetail.purpose}</p>
+                            <p>
+                                {volist name="auntcatedetail" id="voc"}
+                                {$voc}
+                                {/volist}
+                            </p>
                         </div>
+
+                        <h6>
+                            {eq name="auntdetail.mid" value="0"}
+                            尚未获得经纪人。点击此处
+                            <a href="{:url('Admin/Middleman/seekmiddle')}">寻找经纪人</a>
+                            {/eq}
+                            {if condition="$auntdetail.mid!=0"}
+                            您的经纪人是
+                            {/if}
+                        </h6>
 
                         <h6>
                             {eq name='auntdetail.sex' value='0'}[他]{/eq}
