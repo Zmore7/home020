@@ -1,4 +1,3 @@
-
 <div class="page">
     <div class="detail_left_wrapper">
         <div class="detail_left">
@@ -33,7 +32,8 @@
         </ul>
         <div class="summary area1" style="display: block">
             <div style="position:relative;font-size: 25px;">
-                <p ><strong>年龄：</strong>{$aunt.age}&nbsp;&nbsp;&nbsp;<strong> 籍贯：</strong>{$aunt.place}&nbsp;&nbsp; &nbsp;<strong>民族：</strong>{$aunt.folk} </p>
+                <p><strong>年龄：</strong>{$aunt.age}&nbsp;&nbsp;&nbsp;<strong> 籍贯：</strong>{$aunt.place}&nbsp;&nbsp;
+                    &nbsp;<strong>民族：</strong>{$aunt.folk} </p>
                 <p>
                     <strong>身高：</strong>{$aunt.height} 厘米&nbsp;&nbsp;
                     <strong>体重：</strong>{$aunt.weight} 公斤&nbsp;&nbsp;
@@ -46,25 +46,31 @@
                 <p></p>
                 <p><strong>工作意向：</strong>{$aunt.purpose}</p>
                 <p>
-                    <strong>综合评分：</strong><img src="/__PUBLIC_FONT__/img/adv/score.png" >&nbsp; &nbsp;
+                    <strong>综合评分：</strong><img src="/__PUBLIC_FONT__/img/adv/score.png">&nbsp; &nbsp;
                     <a data-ajax="true" data-ajax-failure="ActionFailure" data-ajax-success="FavoriteSuccess"
                        href="/Json/Favorite/b3f0177f-2249-43cc-85b5-a4c510e49e75">已有 27 人收藏她</a>
                 </p>
                 <div class="moreinfo">
                     <div class="advertise_img">
-                        <img src="/__PUBLIC_FONT__/img/icon/验证.png" />
-                        <img src="/__PUBLIC_FONT__/img/icon/服务.png"/>
-                        <img src="/__PUBLIC_FONT__/img/icon/记录.png" />
-                        <img src="/__PUBLIC_FONT__/img/icon/家庭.png"/>
+                        <table>
+                            <tbody>
+                            <tr>
+                                <td width="100px"><img src="/__PUBLIC_FONT__/img/icon/验证.png"/></td>
+                                <td width="100px"><img src="/__PUBLIC_FONT__/img/icon/服务.png"/></td>
+                                <td width="100px"><img src="/__PUBLIC_FONT__/img/icon/记录.png"/></td>
+                                <td width="100px"><img src="/__PUBLIC_FONT__/img/icon/家庭.png"/></td>
+                            </tr>
+                            <tr>
+                                <td width="100px"><p>身份认证</p></td>
+                                <td width="100px"><p>培训可查</p></td>
+                                <td width="100px"><p>服务记录</p></td>
+                                <td width="100px"><p>家庭组成</p></td>
+                            </tr>
+
+                            </tbody>
+                        </table>
+
                     </div>
-                        <div >
-                            <p>身份认证</p>
-                            <p>培训可查</p>
-                            <p>服务记录</p>
-                            <p>家庭组成</p>
-
-                        </div>
-
                     <div class="buttons">
                         <span>要查看更多关于她的资料？</span>
                         <a class="button2"
