@@ -1,0 +1,282 @@
+<div id="page">
+    <h1>提交预约</h1>
+    <div class="textbox" >
+        <form method="post">
+            <div class="form_field">
+                <label for="Name"><span id="labName">真实姓名</span><span class="required">*</span>：</label>
+                <div class="input">
+                    <input class="text"  data-val-length-max="15"
+                           data-val-length-min="2" data-val-required="请输入姓名/名称" id="Name" maxlength="15" name="user_true_name"
+                           type="text" value=""/>
+                    <input type="hidden" name="aunt_id" value="{$aunt_detail.id}">
+
+                    <span class="field-validation-valid" data-valmsg-for="Name" data-valmsg-replace="true"></span>
+                </div>
+            </div>
+            <div class="form_field" id="fldMobileVerfiyCode">
+                <label for="Mobile">手机号码<span class="required">*</span>：</label>
+                <div class="input">
+                    <input type="text" id="Mobile" value="" maxlength="20" class="text" data-val="true"
+                           data-val-required="请输入手机号码" data-val-regex="请输入正确的手机号码"
+                           data-val-regex-pattern="^\+?(86)?[1][3458]\d{9}$" name="user_phone"/>
+                    <span class="field-validation-valid" data-valmsg-for="Mobile" data-valmsg-replace="true"></span>
+                </div>
+            </div>
+            <div class="form_field">
+                <label for="VerifyCode">验证码<span class="required">*</span>：</label>
+                <div class="input" style="height:38px;">
+                    <div style="float:left;display:inline;width:105px;overflow:hidden;">
+                        <input type="text" id="VerifyCode" name="" maxlength="10" class="text"
+                               style="width:80px;" data-val="true" data-val-remote="验证码错误"
+                               data-val-remote-additionalfields="*.VerifyCode,*.ActionName"
+                               data-val-remote-url="/Json/CheckVerifyCode" data-val-required="请输入验证码"/>
+                    </div>
+                    <div style="float:left;display:inline;height:38px;">
+                        <img id="vcImg" src="img/icon/VerifyCode.gif" alt=""
+                             style="vertical-align:middle;"/>
+                        &nbsp;<a href="javascript:void(1)" id="vcBtn">换一张</a></div>
+                    <input id="ActionName" type="hidden" name="" value="OrderPerson"/>
+                    <span class="field-validation-valid" data-valmsg-for="VerifyCode" data-valmsg-replace="true"
+                          style="margin-left:30px;"></span>
+                </div>
+                <div class="under_helper">请输入图片中的字符，不区分大小写。</div>
+            </div>
+            <script language="javascript" type="text/javascript">
+                var $vcBtn = $('#vcBtn');
+                var $vcImg = $('#vcImg');
+
+                $vcBtn.click(function () {
+                    ReLoadVerifyCodeImage();
+                });
+
+                $vcImg.click(function () {
+                    ReLoadVerifyCodeImage();
+                });
+
+                function ReLoadVerifyCodeImage() {
+                    $vcImg.attr("src", "/File/VerifyCode?a=" + $('#ActionName').val() + "&s=" + new Date().getTime());
+                    $('#VerifyCode').focus();
+                }
+            </script>
+
+            <script language="javascript" type="text/javascript">
+
+                var now = '';
+                var nowMd5 = '';
+                $('#SendVerifyCode').click(function () {
+                    //debugger;
+                    var nowVerifyCode = $("#VerifyCode").val();
+
+                    GetSafeTime();
+                    SendVerifyCode(this, $("#fldMobileVerfiyCode input[name='Mobile']"), "OrderPerson", now, nowMd5, nowVerifyCode);
+
+                });
+                function GetSafeTime() {
+                    $.ajax({
+                        type: "GET",
+                        url: "/Json/GetSafeTime",
+                        cache: false,
+                        async: false,
+                        success: function (result) {
+                            now = result.NowTime;
+                            nowMd5 = result.NowTimeMd5;
+                            //debugger;
+                            //SendVerifyCodeCallback(src, result.Status, result.Message);
+                        },
+                        error: function (XMLHttpRequest, textStatus, errorThrown) {
+                            //debugger;
+                            //SendVerifyCodeCallback(src, 1, "验证码短信发送失败，请稍后重试。");
+                        }
+                    });
+                }
+                function SendVerifyCode(src, $mobile, action, now, nowMd5, nowVerifyCode) {
+                    if ($mobile.valid()) {
+                        src.disabled = true;
+                        $.ajax({
+                            type: "GET",
+                            url: "/Json/SendMobileVerifyCode/?m=" + $mobile.val() + "&a=" + action + "&now=" + now + "&nowMd5=" + nowMd5 + "&nowVerifyCode=" + nowVerifyCode,
+                            cache: false,
+                            async: false,
+                            success: function (result) {
+                                SendVerifyCodeCallback(src, result.Status, result.Message);
+                            },
+                            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                                SendVerifyCodeCallback(src, 1, "验证码短信发送失败，请稍后重试。");
+                            }
+                        });
+                    }
+                    else if (!$mobile.is(":focus")) {
+                        src.disabled = true;
+                        setTimeout(function () {
+                            SendVerifyCode(src, $mobile, action, now, nowMd5);
+                        }, 1000);
+                    }
+                    else {
+                        src.disabled = false;
+                    }
+                }
+
+                function SendVerifyCodeCallback(src, status, message) {
+                    var seconds = 120;
+                    if (status == 0) {
+                        setTimeout(function () {
+                            SendVerifyCodeTimer(src, seconds);
+                        }, 1000);
+                        SuccessBox("验证码短信已发出，请注意查收。");
+                    }
+                    else {
+                        src.disabled = false;
+                        ErrorBox(message);
+                    }
+                }
+
+                function SendVerifyCodeTimer(src, seconds) {
+                    if (seconds <= 0) {
+                        src.disabled = false;
+                        src.value = "获取验证码(免费短信)";
+                    }
+                    else {
+                        var subSeconds = String(seconds % 60);
+                        if (subSeconds.length == 1)
+                            subSeconds = "0" + subSeconds;
+
+                        src.value = "短信已发送，请等待 " + parseInt(seconds / 60) + ":" + subSeconds;
+                        seconds--;
+                        setTimeout(function () {
+                            SendVerifyCodeTimer(src, seconds);
+                        }, 1000);
+                    }
+                }
+            </script>
+            <div class="form_field">
+                <label >服务地址<span class="required">*</span>：</label>
+                <div class="input">
+                    <div style="padding-bottom:5px;">
+                        <input class="text"   maxlength="10" name="user_address" style="width:80px;" type="text" value=""/>
+                    </div>
+                </div>
+            </div>
+            <script language="javascript" type="text/javascript">
+                $('#WorkAddr_addr1, #WorkAddr_addr2').change(function () {
+                    SetAddr($(this).next(), $(this).val(), $('#WorkAddr_addrori').val());
+                });
+
+                $('#WorkAddr_addr3').change(function () {
+                    var addr1 = "";
+                    var addr2 = "";
+                    var addr3 = "";
+                    var $addr1 = $('#WorkAddr_addr1');
+                    var $addr2 = $('#WorkAddr_addr2');
+                    var $addrMore = $('#WorkAddr_addrmore');
+                    var $addrFull = $('#WorkAddr');
+                    var $addrOri = $('#WorkAddr_addrori');
+
+                    if ($addr1.is(":visible")) {
+                        addr1 = new RegExp($addr1[0].options[$addr1[0].selectedIndex].text, "g");
+                    }
+                    if ($addr2.is(":visible")) {
+                        addr2 = new RegExp($addr2[0].options[$addr2[0].selectedIndex].text, "g");
+                    }
+                    if ($(this).is(":visible")) {
+                        addr3 = new RegExp($(this)[0].options[$(this)[0].selectedIndex].text, "g");
+                    }
+                    $addrMore.val($addrOri.val().replace(addr1, "").replace(addr2, "").replace(addr3, ""));
+
+                    SetFullAddr($addr1, $addr2, $(this), $addrMore, $addrFull);
+                });
+
+                $('#WorkAddr_addrmore').bind("change blur", function () {
+                    SetFullAddr($('#WorkAddr_addr1'), $('#WorkAddr_addr2'), $('#WorkAddr_addr3'), $(this), $('#WorkAddr'));
+                });
+
+                $('#WorkAddr_addr1').change();
+            </script>
+            <div class="form_field">
+                <label for="ServiceTypeID"><span id="">雇佣工种</span><span class="required">*</span>：</label>
+                <div class="input">
+                    <select name="user_purpose" id="employment-Type">
+                        {volist name="aunt_catelist" id="catlist"}
+                        <option value="{$catlist}">{$catlist}</option>
+                        {/volist}
+                    </select>
+
+                    <span class="field-validation-valid" data-valmsg-for="Type" data-valmsg-replace="true"></span>
+                </div>
+                <div class="under_helper">请选择您需要雇佣的工种。</div>
+            </div>
+            <div class="form_field">
+                <label >详细信息：</label>
+                <div class="input">
+                    <input class="text"  data-val-length-max="10" width="20px"
+                           data-val-length-min="2" data-val-required="请输入详细情况和具体需求"  maxlength="15" name="user_description"
+                           id="LeaveWords"   type="text" value=""/>
+                    <span class="field-validation-valid" data-valmsg-for="Type" data-valmsg-replace="true"></span>
+
+                </div>
+                <div class="under_helper">请填写您的详细情况和具体需求。还可输入 <strong id="remaincount">200</strong> 个字。</div>
+            </div>
+
+            <div class="form_field">
+                <label >可接受工资：</label>
+                <div class="input">
+                    <span>￥</span>
+                    <input class="text" data-val="true" data-val-number="工资必须是数字。" data-val-required="请输入工资数额，如不确定请填0"
+                           id="Salary" maxlength="10" name="user_money" style="width:80px;" type="text" value="0"/>
+                    <span>元&nbsp;/</span>
+                    <select name="unit" id="SalaryType">
+                        <option value="月" selected="selected">月</option>
+                        <option value="周">周</option>
+                        <option value="天">天</option>
+                        <option value="小时">小时</option>
+                        <option value="次">次</option>
+                        <option value="面议">面议</option>
+                    </select>
+                    <span class="field-validation-valid" data-valmsg-for="Salary" data-valmsg-replace="true"></span>
+                </div>
+                <div class="under_helper">请填写您能够接受的工资水平。</div>
+            </div>
+            <div class="form_field">
+                <div class="input">
+                    <input type="submit" class="button" value="同意用户协议并提交"/>
+                    &nbsp; &nbsp; <a href="/About/Law" target="_blank">点击查看《阿姨来了用户协议》</a></div>
+            </div>
+        </form>
+    </div>
+    <!--  <div class="link">
+          <ul>
+              <li class="title">筛选工种</li>
+              <li><a href="/Home/Month">月嫂</a></li>
+              <li><a href="/Home/Baby">育儿嫂</a></li>
+              <li><a href="/Home/House">家务员</a></li>
+              <li><a href="/Home/Hour">小时工</a></li>
+              <li><a href="/Home/Senior">养老</a></li>
+          </ul>
+          <ul>
+              <li class="title">服务须知</li>
+              <li><a href="/About/Service/572">雇主问答</a></li>
+              <li><a href="/About/Service/573">求职问答</a></li>
+              <li><a href="/About/Service/574">工资参考</a></li>
+              <li><a href="/About/Service/933">母婴护理师等级划分</a></li>
+          </ul>
+          <ul>
+              <li class="title">阿姨大学</li>
+              <li><a href="/About/Teach/0?type=MTeach">管理课程</a></li>
+              <li><a href="/About/Teach/0?type=PTeach">家政员课程</a></li>
+              <li><a href="/About/Teach/0?type=JTeach">雇主课程</a></li>
+              <li><a href="/About/Teach/0?type=AYCertificate">证书查询</a></li>
+          </ul>
+          <ul>
+              <li class="title">优惠信息</li>
+              <li><a href="/About/Activity/929">10周年优惠</a></li>
+          </ul>
+          <ul>
+              <li class="title">家政社区</li>
+              <li><a href="http://weibo.com/u/2751696863" target="_blank">雇主吐槽</a></li>
+              <li><a href="/Club/Tavern">女子客栈</a></li>
+              <li><a href="/Club/Writing">原生态写作</a></li>
+              <li><a href="/Club/Good">中国好阿姨</a></li>
+              <li><a href="/Club/Photo">大家拍</a></li>
+          </ul>
+
+      </div>-->
+</div>

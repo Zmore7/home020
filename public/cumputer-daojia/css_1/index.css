@@ -1,0 +1,187 @@
+.header {
+  display: flex;
+  min-width: 1200px;
+}
+.header .logo {
+  flex: 1;
+}
+.header .logo img {
+  display: inline-block;
+  float: left;
+  margin-top: 0.8%;
+}
+.header .nav {
+  flex: 1;
+  align-items: center;
+  height: inherit;
+}
+.header .nav .nav-list {
+  text-align: center;
+  font-size: 0;
+  font-weight: bold;
+}
+.header .nav .nav-list .nav-item {
+  color: #696969;
+  font-size: 0.8rem;
+  display: inline-block;
+  height: 114px;
+  line-height: 114px;
+  width: calc(100% / 12);
+}
+.header .nav .nav-list .nav-input {
+  display: inline-block;
+  margin-left: 1%;
+  width: calc(100% / 11);
+  padding-left: 2%;
+  height: 25px;
+  border-radius: 5px;
+  background-image: url("../img/icon/sousuo.png");
+  background-repeat: no-repeat;
+}
+.header .nav .nav-list .nav-item:hover {
+  color: #f00;
+}
+.container {
+  width: 1200px;
+  margin: 0 auto;
+}
+.container .content {
+  display: block;
+}
+.container .content .banner {
+  margin: 0 auto;
+}
+.container .content .banner .boxID .pic {
+  width: 60%;
+  height: 340px;
+}
+.container .content .serve {
+  width: 100%;
+  margin-top: 1em;
+}
+.container .content .serve .serve-list {
+  display: flex;
+}
+.container .content .serve .serve-list .serve-item {
+  flex: 1;
+  text-align: center;
+}
+.container .content .hot-serve-bar {
+  margin-top: 1em;
+}
+.container .content .hot-serve-bar strong {
+  font-size: 1.1em;
+  display: inline-block;
+  font-weight: 700;
+}
+.container .content .hot-serve-bar .hot-item {
+  display: inline-block;
+  border: 1px solid #dfe2e8;
+  border-radius: 32px;
+  height: 32px;
+  line-height: 32px;
+  padding-left: 10px;
+  padding-right: 10px;
+  margin-left: 12px;
+  position: relative;
+  color: #525a66;
+  cursor: pointer;
+}
+.container .content .hot-serve-bar .hot-item:hover {
+  border: 1px solid #f00;
+}
+.large-container {
+  width: 100%;
+  background: #f5f5f5;
+}
+.large-container .large-content {
+  width: 1200px;
+  margin: 0 auto;
+}
+.large-container .large-content .serve-show {
+  margin-top: 1em;
+  padding-top: 2em;
+  background: #f5f5f5;
+}
+.large-container .large-content .serve-show img {
+  width: 374px;
+  height: 200px;
+}
+.large-container .large-content .serve-show li {
+  margin: 10px;
+  margin-right: 5px;
+  display: inline-block;
+  font-size: 1rem;
+  text-align: center;
+}
+.large-container .large-content .serve-show li .text-wrapper {
+  width: 374px;
+  height: 80px;
+  background: #fff;
+}
+.large-container .large-content .serve-show li .text-wrapper span {
+  line-height: 80px;
+}
+.large-container .large-content .serve-show .title {
+  font-size: 1.5em;
+}
+.large-container .large-content .serve-show .title strong {
+  color: rgba(255,0,0,0.8);
+  padding-right: 1em;
+}
+.large-container .large-content .serve-show .clean .clean-list {
+  font-size: 0;
+  text-align: center;
+}
+.footer {
+  width: 100%;
+  height: 100px;
+  background-color: #999;
+  margin-top: 30px;
+}
+.footer .about-list {
+  height: 36px;
+  color: #fff;
+  width: 410px;
+  margin: 0 auto;
+}
+.footer .about-list .about-item {
+  float: left;
+  padding: 10px 10px;
+}
+.footer .about-list .about-item a {
+  text-decoration: none;
+  color: #fff;
+}
+.footer .about-list .about-item a:hover {
+  color: #fff;
+}
+.footer .msg {
+  width: 310px;
+  margin: 0 auto;
+  height: 50px;
+  padding: 5px 0;
+}
+.footer .msg .about-botton {
+  padding: 5px 0;
+  text-align: center;
+  color: #525a66;
+}
+.icon {
+  width: 100%;
+  height: 350px;
+  padding: 0 200px;
+}
+.icon .icon-list {
+  float: left;
+  margin: 100px;
+}
+.icon .icon-list img {
+  width: 100px;
+}
+.icon .icon-list .icon-p {
+  width: 100px;
+  text-align: center;
+  font-size: 20px;
+  padding: 15px 0;
+}

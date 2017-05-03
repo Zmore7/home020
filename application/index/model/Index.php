@@ -12,5 +12,10 @@ use think\Model;
 use think\Db;
 class Index extends Model
 {
-
+    public function InsertOrder($data){
+        $data['arrive_time'] = date("Y:m:d H:i:s");
+        $db = Db::name('order')
+            ->insert($data);
+        return $db;
+    }
 }

@@ -1,0 +1,82 @@
+body {
+  background: #fff;
+}
+body .nav {
+  flex: 1;
+  align-items: center;
+  height: inherit;
+}
+body .nav .nav-list {
+  text-align: center;
+  font-size: 0;
+  font-weight: bold;
+}
+body .nav .nav-list .nav-item {
+  color: #696969;
+  font-size: 0.8rem;
+  display: inline-block;
+  height: 114px;
+  line-height: 114px;
+  width: calc(100% / 12);
+}
+body .nav .nav-list .nav-input {
+  display: inline-block;
+  margin-left: 1%;
+  width: calc(100% / 11);
+  padding-left: 2%;
+  height: 25px;
+  border-radius: 5px;
+  background-image: url("../img/icon/sousuo.png");
+  background-repeat: no-repeat;
+}
+body .nav .nav-list .nav-item:hover {
+  color: #f00;
+}
+body .clean .title {
+  font-size: 1.5em;
+  margin: 1em 0;
+}
+body .clean .title strong {
+  color: rgba(255,0,0,0.8);
+  padding-right: 1em;
+}
+body .clean .clean-list {
+  font-size: 0;
+  text-align: left;
+}
+body .clean .clean-list .clean-item {
+  background: #f5f5f5;
+  display: inline-block;
+  text-align: center;
+  box-sizing: border-box;
+  padding: 0 4% 5% 4%;
+  width: 33%;
+  font-size: 1rem;
+}
+body .clean .clean-list .clean-item img {
+  width: 100%;
+}
+body .clean .clean-list .clean-item .clean-word {
+  padding: 30px 0;
+  background: #fff;
+}
+body .clean .clean-list .clean-item .clean-word span {
+  display: block;
+  margin-bottom: 10px;
+}
+body .clean .clean-list .clean-item .clean-word span red {
+  color: #f00;
+}
+body .clean .clean-list .clean-item .clean-word button {
+  width: 200px;
+  height: 40px;
+  margin-top: 20px;
+}
+body .clean .clean-list .clean-item .clean-word .name {
+  font-size: 1.5rem;
+}
+body .clean .clean-list .clean-item .clean-word .desc {
+  color: #999;
+  font-size: 1rem;
+  text-align: start;
+}
