@@ -21,9 +21,10 @@ class Aunt extends Base{
         //阿姨详情（用户访问的）
         if($id = input('id')){
             $db=\think\Db::name('aunt')->where('id','=',$id)->find();
-            var_dump($db);
-            echo $db['name'];
-            $this->assign('list',$db);
+            //var_dump($db);
+            $this -> view -> engine->layout('layout/layout1');
+
+            $this->assign('aunt',$db);
             return $this->fetch('aunt_detail');
         }
 
