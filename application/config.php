@@ -248,6 +248,7 @@ return [
         '__PUBLIC_FONT__'=>'home020/public/cumputer-daojia',//从git上面pull下来，注意文件夹名字就直接用这个吧~
         '__PUBLIC_BOOTSTRAP__'=>'home020/public/bootstrap',
         '__PUBLIC_AYI__'=>'home020/public/ayilaile_list',
+        '__PUBLIC_SUB__'=>'home020/public/submit_to_buy',
         '__ROOT__' => '/',
 
     ]

@@ -24,9 +24,18 @@ class Buy extends Base
             $this -> assign ('auntlist',$auntlist);
             $this -> view -> engine->layout('layout/layout1');
             return $this -> fetch('aunt_list');
-
         }else{
+            return $this -> error('非法操作');
+        }
+    }
+    public function submit_to_buy(){
+        if(session('user_username')){//不登录不可以预约
+            if(input('post.')){
 
+            }else{
+                return $this -> fetch('to_order');
+            }
+        }else{
             return $this -> error('非法操作');
         }
     }

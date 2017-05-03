@@ -1,0 +1,83 @@
+
+	<!-- main container -->
+    <div class="content">
+        
+        <div class="container-fluid">
+            <div id="pad-wrapper" class="new-user">
+                <div class="row-fluid header">
+                    <h3>信息修改</h3>
+                </div>
+
+                <div class="row-fluid form-wrapper">
+                    <!-- left column -->
+                    <div class="span9 with-sidebar">
+                        <div class="container">
+                            <form class="new_user_form inline-input" action="user_mod" method="post"/>
+                                <div class="span12 field-box">
+                                    <label>姓名:</label>
+                                    <input class="span9" name="name" type="text" value="{$userdetail.name}"/>
+                                    <input class="span9" name="id" type="hidden" value="{$userdetail.id}"/>
+                                </div>
+
+                                <div class="span12 field-box">
+                                    <label>地址:</label>
+                                    <input class="span9" name="address" type="text" value="{$userdetail.address}"/>
+                                </div>
+                                <div class="span12 field-box">
+                                    <label>年龄:</label>
+                                    <input class="span9" name="age" type="text" value="{$userdetail.age}"/>
+                                </div>
+                                <div class="span12 field-box">
+                                    <label>手机:</label>
+                                    <input class="span9" name="phone" type="text" value="{$userdetail.phone}"/>
+                                </div>
+                                <div class="span12 field-box">
+                                    <label>性别:</label>
+                                    <select>
+                                        <option value="0">男</option>
+                                        <option value="1">女</option>
+                                    </select>
+                                </div>
+                            <div class="span12 field-box">
+                                <label>服务意向:</label>
+                                {volist name="catedetail" id="voo"}
+                                <input type="checkbox" name="category[]" value="{$voo.cat_id}">{$voo.cat_name}
+                                {/volist}
+                            </div>
+                            <div class="span12 field-box">
+                                <label>介绍:</label>
+                                <input class="span9" type="text" name="selfdesc" value="{$userdetail.selfdesc}"/>
+                            </div>
+                                <div class="span11 field-box actions">
+                                    <input type="submit" class="btn-glow primary" value="修改信息" />
+                                    <span>OR</span>
+                                    <input type="reset" value="放弃修改" class="reset" />
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- side right column -->
+                    <div class="span3 form-sidebar pull-right">
+                        <div class="btn-group toggle-inputs hidden-tablet">
+                            <button class="glow left active" data-input="inline">INLINE INPUTS</button>
+                            <button class="glow right" data-input="normal">NORMAL INPUTS</button>
+                        </div>
+                        <div class="alert alert-info hidden-tablet">
+                            <i class="icon-lightbulb pull-left"></i>
+                            Click above to see difference between inline and normal inputs on a form
+                        </div>                        
+                        <h6>Sidebar text for instructions</h6>
+                        <p>Add multiple users at once</p>
+                        <p>Choose one of the following file types:</p>
+                        <ul>
+                            <li><a href="#">Upload a vCard file</a></li>
+                            <li><a href="#">Import from a CSV file</a></li>
+                            <li><a href="#">Import from an Excel file</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- end main container -->

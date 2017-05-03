@@ -45,6 +45,7 @@ class Index extends Base
             $aunt_data = $User -> getAuntDetail($userid);
             if($aunt_data!=NULL){
                 $this -> assign('auntdetail',$aunt_data[0]);
+                $this -> assign('auntcatedetail',$aunt_data['purpose_arr']);
                 return $this -> fetch('aunt_detail');
             }else{
                 $this->error('非法操作');//防止查不存在的阿姨
