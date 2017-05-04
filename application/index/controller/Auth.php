@@ -13,8 +13,10 @@ use think\Controller;
 use think\Upload;
 use think\image;
 use think\Session;
+use app\index\model\AuthMod;
 class Auth extends Controller
 {
+
     public function login(){
 
         return $this->fetch('login_switch');
@@ -41,8 +43,12 @@ class Auth extends Controller
         //var_dump($password);
 
             if ($db['password'] == $password) {
-                //这是设置session的
+                $AuthMod = new AuthMod();
+                $user_data = $AuthMod -> getUserInfo($username,'aunt');//凭借用户名获取用户的详细信息，如id等
+                //这是设置session的 先清空session
+                session::clear();
                 Session::set('aunt_username', $username);
+                Session::set('aunt_id', $user_data['id']);
                 if($mima==NULL){
                     return $this->error('密码错误');
                 }else{
@@ -79,8 +85,12 @@ class Auth extends Controller
             //var_dump($password);
 
                 if ($db['password'] == $password) {
+                    $AuthMod = new AuthMod();
+                    $user_data = $AuthMod -> getUserInfo($username,'user');//凭借用户名获取用户的详细信息，如id等
                     //这是设置session的
+                    session::clear();
                     Session::set('user_username', $username);
+                    Session::set('user_id', $user_data['id']);
                     if($mima==""){
                         return $this->error('密码错误');
                     }else{
@@ -117,7 +127,11 @@ class Auth extends Controller
             //var_dump($password);
 
             if ($db['password'] == $password) {
+                $AuthMod = new AuthMod();
+                $user_data = $AuthMod -> getUserInfo($username,'admin');//凭借用户名获取用户的详细信息，如id等
                 //这是设置session的
+                session::clear();
+                Session::set('admin_id', $user_data['id']);
                 Session::set('username', $username);
                 if($mima==""){
                     return $this->error('密码错误');
@@ -173,6 +187,6 @@ class Auth extends Controller
     }
     public function logout(){
         session::clear();
-        return $this->success('注销成功');
+        return $this->success('注销成功','Index/Index/index');
     }
 }

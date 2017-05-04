@@ -44,10 +44,17 @@
             </a>
             {/if}
             {/if}
-            {if condition="$user_name || $aunt_name!=NULL"}
+            {if condition="$user_name==NULL && $aunt_name!=NULL"}
             <a href="{:url('Index/Aunt/aunt_center')}">
+                <li class="nav-item">阿姨中心</li>
+            </a>
+            {/if}
+            {if condition="$user_name!=NULL && $aunt_name==NULL"}
+            <a href="{:url('Index/User/user_center')}">
                 <li class="nav-item">用户中心</li>
             </a>
+            {/if}
+            {if condition="$user_name || $aunt_name!=NULL"}
             <a href="{:url('Index/Auth/logout')}">
                 <li class="nav-item">登出</li>
             </a>
