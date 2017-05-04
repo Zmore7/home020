@@ -10,9 +10,34 @@ use app\index\model\Index;
 class Aunt extends Base{
     public function aunt_center(){
         $auntdata = session('aunt_username');
-        $check=\think\Db::name('aunt')->where('username','=',$auntdata)->select();
-        if($check){
-            var_dump($check);
+        $db=\think\Db::name('aunt')->where('username','=',$auntdata)->select();
+        if($db){
+            if(request()->isPost()){
+                $data = [
+                    'name' => input('name'),
+                    'information'=>input('information'),
+                    'folk'=>input('folk'),
+                    'age' => input('age'),
+                    'address' => input('address'),
+                    'email' => input('email'),
+                    'phone' => input('phone'),
+                    'salary'=>input('salary'),
+                    'learn'=>input('learn'),
+                    'place'=>input('place'),
+                    'experience'=>input('experience'),
+                    'sex'=>input('sex'),
+                    'weight'=>input('weight'),
+                    'height'=>input('height'),
+                ];
+                $update=\think\Db::name('aunt')->where('username','=',$auntdata)->update();
+                if ($update){
+                    $this->success('修改完成','index/index/index');
+                }
+                    $this->error('修改失败');
+            }
+
+            $this->assign('aunt',$db[0]);
+            $this -> view -> engine->layout('layout/layout1');
             return $this->fetch('aunt_center');
         }else{
             return $this->error('用户非阿姨或者未登录');
